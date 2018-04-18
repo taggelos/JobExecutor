@@ -5,17 +5,17 @@ void paramError(char * programName ,const char * reason){
 	//Display the problem
 	cerr << reason << ", please try again." << endl;
 	//Show the usage and exit.
-	cerr << "Usage : " << programName << " [-d <DOCUMENT>][-w <NUMBER OF WORKERS>]" << endl; 
+	cerr << "Usage : " << programName << " -d <DOCUMENT> [-w <NUMBER OF WORKERS>]" << endl;
 	exit(1);
 }
 
 //Print Format when problem with command occurs
 void commandError(){
-	cerr << "##############################################################"<<endl;
+	cerr << "############################################################################"<<endl;
 	cerr << "#Invalid command!" <<endl;
-	cerr << "#Available commands :\t/search <q1> <q2> <q3> <q4> ... <q10>" << endl;
-	cerr << "#\t\t\t" << "/df or /df <word>" << endl << "#\t\t\t" << "/tf <integer> <word>" << endl << "#\t\t\t" << "/exit" << endl;
-	cerr << "##############################################################"<<endl;
+	cerr << "#Available commands :\t/search <q1> <q2> <q3> <q4> ... <q10> -d <INTEGER>" << endl;
+	cerr << "#\t\t\t" << "/mincount <WORD>" << endl << "#\t\t\t" << "/maxcount <WORD>" << endl << "#\t\t\t" << "/wc" << endl << "#\t\t\t" << "/exit" << endl;
+	cerr << "############################################################################"<<endl;
 }
 
 //Check string if it is number
@@ -60,8 +60,7 @@ char** readFile(char* myFile, int &lines){
 void inputCheck(int argc, char* argv[], char*& inputFile, int& workersNum){
 	if (argc == 3){
 		if (strcmp(argv[1],"-d")) paramError(argv[0], "You need to provide input file");
-		else if (strcmp(argv[1],"-w")) paramError(argv[0], "You need to provide number of workers");
-		else paramError(argv[0], "Invalid argument");
+		inputFile = argv[2];
 	}
 	else if (argc== 5) {
 		if (!strcmp(argv[1],"-d") && !strcmp(argv[3],"-w")){
@@ -86,8 +85,7 @@ void inputCheck(int argc, char* argv[], char*& inputFile, int& workersNum){
 	cout << "Arguments taken : " << inputFile << " " << workersNum << endl;
 }
 
-/*
-void searchInputCheck(Trie* trie, const int& lineNum, const int& K, char** paths, int* nwords){
+void searchInputCheck(){
 	char * q = strtok(NULL, " \t");
 	//Number of queries
 	int n=0;
@@ -101,10 +99,57 @@ void searchInputCheck(Trie* trie, const int& lineNum, const int& K, char** paths
 	}
 	//If no arguments print error
 	if (n==0) cerr << "Provide at least 1 argument for search!" <<endl;
-	else if()
-	//Search for every query given
-	////else wlist.search(trie, lineNum, K, paths, nwords);
-}*/
+	else wlist.searchInputCheck();
+}
+
+void storeFds(char**& w2j, char**& j2w, int workersNum){
+	w2j = new char*[workersNum];
+	j2w = new char*[workersNum];
+	for (int i=0; i<workersNum; i++){				
+		//strlen(".w2j") + INT_MAX + '\0' = 15
+		w2j[i] = new char[15];
+		//Each file descriptor will have an increasing number
+		sprintf(w2j[i], ".w2j%d", i);
+		if(mkfifo(w2j[i],0777)==-1){
+			if (errno!=EEXIST) {
+				perror("receiver : mkfifo");
+				exit(2);
+			}
+		}
+		//strlen(".j2w") + INT_MAX + '\0' = 15
+		j2w[i] = new char[15];
+		//Each file descriptor will have an increasing number
+		sprintf(j2w[i], ".j2w%d", i);
+		if(mkfifo(j2w[i],0777)==-1){
+			if (errno!=EEXIST) {
+				perror("receiver : mkfifo");
+				exit(2);
+			}
+		}
+	}
+}
+
+void freeFds(char** w2j, char** j2w, int workersNum){
+	for (int i=0; i<workersNum; i++){		
+		if(unlink(w2j[i]) < 0) {
+			if (errno!=EEXIST){
+				perror("unlink failed");
+				exit(2);
+			}
+		}
+		if(unlink(j2w[i]) < 0) {
+			if (errno!=EEXIST){
+				perror("unlink failed");
+				exit(2);
+			}
+		}
+		delete[] w2j[i];
+		delete[] j2w[i];
+		wait(NULL);
+	}
+	delete[] w2j;
+	delete[] j2w;
+}
 
 //Free a 2D array knowing its size with lineNum
 void free2D(char ** paths, const int& lineNum){

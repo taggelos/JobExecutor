@@ -23,10 +23,8 @@ using namespace std;
 
 void paramError(char * programName ,const char * reason);
 void commandError();
-bool numberCheck(char *str);
 char** readFile(char* myFile, int &lines);
 void inputCheck(int argc, char* argv[], char*& inputFile, int& topK);
-void searchInputCheck();
 void storeFds(char**& w2j, char**& j2w, int workersNum);
 void freeFds(char** w2j, char** j2w, int workersNum);
 void free2D(char ** paths, const int& lineNum);

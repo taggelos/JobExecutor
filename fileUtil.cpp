@@ -18,20 +18,10 @@ void commandError(){
 	cerr << "############################################################################"<<endl;
 }
 
-//Check string if it is number
-bool numberCheck(char *str){
-	int len = (int)strlen(str);
-	//In case there is a letter with the number and atoi clears it
-	for (int j=0; j<len; j++)
-		if (!isdigit(str[j])) return false;
-	return true;
-}
-
 //Read input File
 char** readFile(char* myFile, int &lines){
 	FILE * file;
 	lines = 0;
-
 	file = fopen (myFile, "r");
 	if (file == NULL){
 		cerr << "Error opening file" << endl;
@@ -83,23 +73,6 @@ void inputCheck(int argc, char* argv[], char*& inputFile, int& workersNum){
 	}
 	else paramError(argv[0], "This is not an appropriate syntax");
 	cout << "Arguments taken : " << inputFile << " " << workersNum << endl;
-}
-
-void searchInputCheck(){
-	char * q = strtok(NULL, " \t");
-	//Number of queries
-	int n=0;
-	WordList wlist;
-	//Take at maximum 10 queries and the deadline with its argument
-	while(q != NULL && n<12){
-		//Add queries in a word list
-		wlist.add(q);
-		q = strtok(NULL, " \t");
-		n++;
-	}
-	//If no arguments print error
-	if (n==0) cerr << "Provide at least 1 argument for search!" <<endl;
-	else wlist.searchInputCheck();
 }
 
 void storeFds(char**& w2j, char**& j2w, int workersNum){

@@ -29,7 +29,6 @@ public:
 	void add(char* word);
 	void searchInputCheck();
 	void search(Trie* trie, const int& N, const int& K, char** documents, int* nwords);
-	int countDigits(int n);
 	void printSpaces(int num);
 	void printLine(int start, int letters, char* arr);
 	void specialPrint(int i, HeapNode* hn, char * underline, char* original);
@@ -38,5 +37,8 @@ public:
 	char* createUnderLine(char* original);
 	~WordList();	
 };
+
+bool numberCheck(char *str);
+int countDigits(int n);
 
 #endif

@@ -2,6 +2,25 @@
 #include "wordList.h"
 using namespace std;
 
+//Count Digits (Did not see that coming)
+int countDigits(int n){
+	int count = 1;
+	while (n > 9) {
+		n = n / 10;
+		++count;
+	}
+	return count;
+}
+
+//Check string if it is number
+bool numberCheck(char *str){
+	int len = (int)strlen(str);
+	//In case there is a letter with the number and atoi clears it
+	for (int j=0; j<len; j++)
+		if (!isdigit(str[j])) return false;
+	return true;
+}
+
 //Store the word into a Node
 WordList::Node::Node(char* w){
 	next = NULL;
@@ -33,21 +52,11 @@ void WordList::add(char* word){
 	numNodes++;
 }
 
-//Count Digits (Did not see that coming)
-int WordList::countDigits(int n){
-	int count = 1;
-	while (n > 9) {
-		n = n / 10;
-		++count;
-	}
-	return count;
-}
-
 void WordList::searchInputCheck(){
 	//Penultimate character must be the deadline flag
 	Node * hnext = head->next;
 	//Display the problem
-	if (hnext==NULL || strcmp(hnext->word,"-d")) cerr << "Usage : search <q1> <q2> <q3> <q4> ... <q10> -d <integer>" << endl;
+	if (hnext==NULL || strcmp(hnext->word,"-d") || !numberCheck(head->word)) cerr << "Usage : search <q1> <q2> <q3> <q4> ... <q10> -d <integer>" << endl;
 }
 
 void WordList::search(Trie* trie, const int& N, const int& K, char** documents, int* nwords){

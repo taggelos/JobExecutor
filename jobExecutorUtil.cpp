@@ -2,11 +2,18 @@
 #include "jobExecutorUtil.h"
 
 void jobExecutor(char** w2j, char** j2w, char* inputFile, char** paths, int pathsNum, int workersNum){
-	cout << "PARENT-- " << w2j[0][0] <<endl;
+	cout << "PARENT-- " <<endl;
 	//parent process
 	int * fdsJ2w = new int[workersNum];
+	int * fdsW2j = new int[workersNum];
 	for (int i=0; i<workersNum; i++){
-		if ((fdsJ2w[i] = open(j2w[i], O_WRONLY )) < 0){
+		//Open named pipe from Job to worker
+		if ((fdsJ2w[i] = open(j2w[i], O_WRONLY)) < 0){
+			perror("fifo open error"); 
+			exit(4);
+		}
+		//Open named pipe from worker to Job
+		if ((fdsW2j[i] = open(w2j[i], O_RDONLY)) < 0){
 			perror("fifo open error"); 
 			exit(4);
 		}
@@ -35,19 +42,20 @@ void jobExecutor(char** w2j, char** j2w, char* inputFile, char** paths, int path
 			break;
 		}
 		// /search
-		else if (!strcmp(cmd,"/search")) jSearch(fdsJ2w, workersNum); //Then write to workers
+		else if (!strcmp(cmd,"/search")) jSearch(fdsJ2w, fdsW2j, workersNum); //Then write to workers
 		// /maxcount
-		else if (!strcmp(cmd,"/maxcount")) jMaxcount();
+		else if (!strcmp(cmd,"/maxcount")) jMaxcount(fdsJ2w, fdsW2j, workersNum);
 		// /mincount
 		else if (!strcmp(cmd,"/mincount")) jMincount();
 		// /wc
-		else if (!strcmp(cmd,"/wc")) jWc();
+		else if (!strcmp(cmd,"/wc")) jWc(fdsW2j, fdsJ2w, workersNum);
 		//Wrong Command
 		else commandError();
 		cout <<endl<<"Type next command or '/exit' to terminate"<<endl;
 	}
 	if(mystring!=NULL) free(mystring);
 	delete[] fdsJ2w;
+	delete[] fdsW2j;
 }
 
 //Divide paths to workers
@@ -56,19 +64,20 @@ void loadBalancer(char** paths, int pathsNum, int workers, int* fd){
 	int equalParts = pathsNum / workers;
 	//Surplus to be hold to know sizes
 	int surplus = pathsNum % workers;
+	//Index for specific path in paths
+	int k = 0;
+	//Length of each pathname
+	int length;
 	for (int i=0; i<workers; i++){
 		int size = equalParts;
 		if (i < surplus) size++;
-		if (write(fd[i], &size, sizeof(int)) == -1) {
-			perror("Problem in writing the number of paths");
-			exit(4);
-		}
-		cout << "worker " << i << " ->" <<endl;
-		for (int j=0; j<size; j++) writeString(fd[i], paths[j]);
+		writeInt(fd[i], size);
+		cout << "worker " << i << " ->" << paths[k] <<endl;
+		for (int j=0; j<size; j++) writeString(fd[i],paths[k++]);
 	}
 }
 
-void jSearch(int* fd, int workers){
+void jSearch(int* fd, int* fdReceive, int workers){
 	WordList wlist;
 	if (!searchInputCheck(wlist)) return;
 	//Use the 's' letter to designate our search command
@@ -78,13 +87,28 @@ void jSearch(int* fd, int workers){
 	//Array of queries
 	char** words = wlist.returnAsArray();
 	//For every worker
-	for (int i=0; i<workers; i++) writeArray(fd[i], words, numWords);	
+	for (int i=0; i<workers; i++) {
+		//for every file{}
+		writeArray(fd[i], words, numWords);
+		//read sth? and then dont forget delete
+	}
 	free2D(words,numWords);
 }
 
-void jMaxcount(){
-	char * param = mcountInputCheck();
-	delete[] param;
+void jMaxcount(int* fd, int* fdReceive, int workers){
+	char * keyword = mcountInputCheck();
+	if (keyword==NULL) return;
+	//Use the 'a' letter to designate our search command
+	sendCmd('a', fd, workers);
+	char* winnerPath;
+	for (int i=0; i<workers; i++) {
+		//Send the keyword to be used
+		writeString(fd[i], keyword);
+		winnerPath = readString(fdReceive[i]);
+		delete[] winnerPath;
+	}
+	//if winnerPath = "" ignore it
+	delete[] keyword;
 }
 
 void jMincount(){
@@ -92,8 +116,20 @@ void jMincount(){
 	delete[] param;
 }
 
-void jWc(){
+void jWc(int* fd, int* fdSend, int workers){
 	wcInputCheck();
+	//Use the 'w' letter to designate our search command
+	sendCmd('w', fdSend, workers);
+	int lineNums, nwords, sumLineNums = 0, sumNwords = 0; 
+	for (int i=0; i<workers; i++){
+		//readInt(fd[i], bytes);
+		//sumBytes += bytes;
+		readInt(fd[i], lineNums);
+		sumLineNums += lineNums;
+		readInt(fd[i], nwords);
+		sumNwords += nwords;
+	}
+	cout << "WC JOBEXE-> " <<  " lineNums-> " <<sumLineNums << " nwords -> " << sumNwords <<endl;
 }
 
 bool searchInputCheck(WordList& wlist){

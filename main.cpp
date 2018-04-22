@@ -8,7 +8,7 @@ int main(int argc, char* argv[]){
 	//Check Initial Arguments
 	inputCheck(argc,argv,inputFile,workersNum);
 	int	pathsNum = 0;
-	char** paths = readFile(inputFile,pathsNum);
+	char** paths = readPathFile(inputFile,pathsNum);
 	//Create as many workers as we need, not more
 	if(workersNum > pathsNum) workersNum = pathsNum;
 	//For Workers to JobExecutor communication

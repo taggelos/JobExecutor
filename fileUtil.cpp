@@ -22,6 +22,7 @@ void commandError(){
 char** readFile(char* myFile, int &lines){
 	FILE * file;
 	lines = 0;
+
 	file = fopen (myFile, "r");
 	if (file == NULL){
 		cerr << "Error opening file" << endl;
@@ -29,20 +30,57 @@ char** readFile(char* myFile, int &lines){
 	}
 	else {
 		while(!feof(file)) if(fgetc(file) == '\n') lines++;
-		char ** paths = new char*[lines];
+		char ** documents = new char*[lines];
 		rewind(file);
 		//Lines
 		char * mystring = NULL;
 		size_t n = 0;
+			cout << "readRegSAXNE " << lines  ;
 		for (int i=0; i<lines;i++){
 			ssize_t size = getline(&mystring, &n, file);
 			if(mystring[size-1]=='\n') mystring[size-1]='\0';
-			paths[i] = new char[size+1];
-			strcpy(paths[i],mystring);
+			char *token = strtok(mystring," \t");
+			//For first character of first line we check without using atoi
+			if (token==NULL || !numberCheck(token) || atoi(mystring)!=i ) {
+				cerr <<"Invalid number close in line "<< i << " of file" <<endl;
+				exit(4);
+			}
+			documents[i] = new char[size+1-strlen(token)];
+			strcpy(documents[i],mystring+strlen(token)+1);
+			cout << "  " << documents[i] << "  "<< endl;	
 		}
 		if(mystring!=NULL) free(mystring);
 		fclose (file);
-		return paths;
+		return documents;
+	}
+}
+
+//Read input File
+char** readPathFile(char* myFile, int &lines){
+	FILE * file;
+	lines = 0;
+	file = fopen (myFile, "r");
+	if (file == NULL){
+		cerr << "Error opening file" << endl;
+		exit(2);
+	}
+	else {
+		while(!feof(file)) if(fgetc(file) == '\n') lines++;
+		char ** documents = new char*[lines];
+		rewind(file);
+		//Lines
+		char * mystring = NULL;
+		size_t n = 0;
+			cout << "readPATHSAXNE " << lines  << "  "<< endl;
+		for (int i=0; i<lines;i++){
+			ssize_t size = getline(&mystring, &n, file);
+			if(mystring[size-1]=='\n') mystring[size-1]='\0';
+			documents[i] = new char[size+1];
+			strcpy(documents[i],mystring);
+		}
+		if(mystring!=NULL) free(mystring);
+		fclose (file);
+		return documents;
 	}
 }
 
@@ -109,22 +147,20 @@ void storeFds(char**& w2j, char**& j2w, int workersNum){
 
 //Read a 2d array using the file descriptor
 char** readArray(int fd, int& lines){
-	if (read(fd, &lines, sizeof(int)) < 0) {
-		perror("Problem in reading the number of lines");
-		exit(4);
-	}
+	//Receive the number of lines of the array
+	readInt(fd, lines);
 	char** arr = new char*[lines];
+	//Receive each line
 	for (int i=0; i<lines; i++) arr[i] = readString(fd);
 	return arr;
 }
 
 //Read an 1d array using the file descriptor
 char* readString(int fd){
+	//Receive the length of the string
 	int length;
-	if (read(fd, &length, sizeof(int)) < 0) {
-		perror("Problem in reading length of string");
-		exit(4);
-	}
+	readInt(fd,length);
+	//Receive the string
 	char* str = new char[length];
 	if (read(fd, str, length) < 0) {
 		perror("Problem in reading string");
@@ -133,28 +169,58 @@ char* readString(int fd){
 	return str;
 }
 
-//Write a 2d array using the file descriptor
-void writeArray(int fd, char** arr, int& lines){
-	if (write(fd, &lines, sizeof(int)) == -1){
-		perror("Problem in writing the number of lines");
+//Read an integer using the file descriptor
+void readInt(int fd, int& n){
+	if (read(fd, &n, sizeof(int)) < 0) {
+		perror("Problem in reading integer");
 		exit(4);
 	}
-	for (int j=0; j<lines; j++) writeString(fd, arr[j]);
+}
+
+//Read a double using the file descriptor
+//void readDouble(int fd, double& n){
+//	if (read(fd, &n, sizeof(double)) < 0) {
+//		perror("Problem in reading integer");
+//		exit(4);
+//	}
+//}
+
+//Write a 2d array using the file descriptor
+void writeArray(int fd, char** arr, int lines){
+	//Send the number of lines of the array
+	writeInt(fd, lines);
+	//Send each line
+	for (int i=0; i<lines; i++) writeString(fd, arr[i]);
 }
 
 //Write an 1d array using the file descriptor
 void writeString(int fd, char* str){
+	//Send the length of the string
 	int length = (int)strlen(str)+1;
-	if (write(fd, &length, sizeof(int)) == -1) {
-		perror("Problem in writing length of string");
-		exit(4);
-	}
+	writeInt(fd, length);
+	//Send the string
 	if (write(fd, str, length) == -1) {
 		perror("Problem in writing string");
 		exit(4);
 	}
 	//cout<<endl;
 }
+
+//Write an integer using the file descriptor
+void writeInt(int fd, int n){
+	if (write(fd, &n, sizeof(int)) == -1) {
+		perror("Problem in writing integer");
+		exit(4);
+	}
+}
+
+//Write an integer using the file descriptor
+// void writeDouble(int fd, double n){
+// 	if (write(fd, &n, sizeof(double)) == -1) {
+// 		perror("Problem in writing integer");
+// 		exit(4);
+// 	}
+// }
 
 void freeFds(char** w2j, char** j2w, int workersNum){
 	for (int i=0; i<workersNum; i++){		

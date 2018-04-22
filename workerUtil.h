@@ -10,11 +10,11 @@
 void worker(char** w2j, char** j2w, int workersNum);
 char** readCommands(int fd);
 char** readDirs(char** paths, int pathsNum, int& documentsNum);
-void wSearch(int fd, Trie* trie, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, int filesNum);
+void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, int filesNum);
+void wMaxcount(int fd, int fdSend);
 void wMincount();
-void wMaxcount();
-void wWc();
-void writeLog(char* arg);
+void wWc(int fd, int filesNum, int** nwordsFiles, int* lineNumFiles);
+void writeLog(int time, char* query, char* str, char* winnerPath, char** paths, int num, int bytes, int numWords);
 void freeAll(char ** mydirFiles, char** paths, int pathsNum, int filesNum, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, Trie* trie);
 void wInsertTrie(int filesNum, char** mydirFiles, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, Trie* trie);
 

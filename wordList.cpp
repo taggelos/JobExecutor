@@ -52,11 +52,15 @@ void WordList::add(char* word){
 	numNodes++;
 }
 
-void WordList::searchInputCheck(){
+bool WordList::searchInputCheck(){
 	//Penultimate character must be the deadline flag
 	Node * hnext = head->next;
 	//Display the problem
-	if (hnext==NULL || strcmp(hnext->word,"-d") || !numberCheck(head->word)) cerr << "Usage : search <q1> <q2> <q3> <q4> ... <q10> -d <integer>" << endl;
+	if (hnext==NULL || strcmp(hnext->word,"-d") || !numberCheck(head->word)) {
+		cerr << "Usage : search <q1> <q2> <q3> <q4> ... <q10> -d <integer>" << endl;
+		return false;
+	}
+	return true;
 }
 
 void WordList::search(Trie* trie, const int& N, const int& K, char** documents, int* nwords){
@@ -199,6 +203,22 @@ void WordList::specialPrint(int i, HeapNode* hn, char * underline, char* origina
 		printLine(start,letters,original);
 		printLine(start,letters,underline);
 	}
+}
+
+char** WordList::returnAsArray(){
+	char** words = new char*[numNodes];
+	Node* temp = head;
+	int i=0;
+	while(temp!= NULL){
+		words[i] = new char[strlen(temp->word)+1];
+		strcpy(words[i++],temp->word);
+		temp = temp->next;
+	}
+	return words;
+}
+
+int WordList::countWords(){
+	return numNodes;
 }
 
 //WordList Destructor

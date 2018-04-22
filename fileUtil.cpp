@@ -75,6 +75,11 @@ void inputCheck(int argc, char* argv[], char*& inputFile, int& workersNum){
 	cout << "Arguments taken : " << inputFile << " " << workersNum << endl;
 }
 
+void createLog(){
+	struct stat st = {};
+	if(stat("log", &st) == -1) mkdir("log", 0700);
+}
+
 void storeFds(char**& w2j, char**& j2w, int workersNum){
 	w2j = new char*[workersNum];
 	j2w = new char*[workersNum];
@@ -100,6 +105,55 @@ void storeFds(char**& w2j, char**& j2w, int workersNum){
 			}
 		}
 	}
+}
+
+//Read a 2d array using the file descriptor
+char** readArray(int fd, int& lines){
+	if (read(fd, &lines, sizeof(int)) < 0) {
+		perror("Problem in reading the number of lines");
+		exit(4);
+	}
+	char** arr = new char*[lines];
+	for (int i=0; i<lines; i++) arr[i] = readString(fd);
+	return arr;
+}
+
+//Read an 1d array using the file descriptor
+char* readString(int fd){
+	int length;
+	if (read(fd, &length, sizeof(int)) < 0) {
+		perror("Problem in reading length of string");
+		exit(4);
+	}
+	char* str = new char[length];
+	if (read(fd, str, length) < 0) {
+		perror("Problem in reading string");
+		exit(4);
+	}
+	return str;
+}
+
+//Write a 2d array using the file descriptor
+void writeArray(int fd, char** arr, int& lines){
+	if (write(fd, &lines, sizeof(int)) == -1){
+		perror("Problem in writing the number of lines");
+		exit(4);
+	}
+	for (int j=0; j<lines; j++) writeString(fd, arr[j]);
+}
+
+//Write an 1d array using the file descriptor
+void writeString(int fd, char* str){
+	int length = (int)strlen(str)+1;
+	if (write(fd, &length, sizeof(int)) == -1) {
+		perror("Problem in writing length of string");
+		exit(4);
+	}
+	if (write(fd, str, length) == -1) {
+		perror("Problem in writing string");
+		exit(4);
+	}
+	//cout<<endl;
 }
 
 void freeFds(char** w2j, char** j2w, int workersNum){

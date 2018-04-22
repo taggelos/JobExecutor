@@ -17,6 +17,8 @@ int main(int argc, char* argv[]){
 	char** j2w;
 	//Store the file descriptors of our named pipes
 	storeFds(w2j, j2w, workersNum);
+	//Create the log directory
+	createLog();
 	//start Workers
 	worker(w2j, j2w, workersNum);
 	//start JobExecutor

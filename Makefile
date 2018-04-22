@@ -19,4 +19,8 @@ val:
 	valgrind -v --leak-check=full --show-leak-kinds=all ./$(OUT) -d $(DATA)
 
 clean:
+	rm -f $(OBJS) $(OUT) .j2w* .w2j* log/Worker_*
+
+cclean:
 	rm -f $(OBJS) $(OUT) .j2w* .w2j*
+	rm -rf log

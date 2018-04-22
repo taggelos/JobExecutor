@@ -1,8 +1,7 @@
 //Function Definitions
 #include "trieUtil.h"
 
-Trie* insertTrie(char** documents, const int& lineNum, int* nwords){
-	Trie* trie = new Trie;
+void insertTrie(Trie* trie, char** documents, const int& lineNum, int* nwords){
 	char * word;
 	//So as not to change original
 	char * templine;
@@ -22,10 +21,10 @@ Trie* insertTrie(char** documents, const int& lineNum, int* nwords){
 		nwords[lineNum]+=nwords[i];
 		delete[] templine;
 	}
-	return trie;
 }
 
 void search(Trie* trie, const int& lineNum, const int& K, char** documents, int* nwords){
+	//IT WILL BE REPLACED WITH NEW SEARCH FOR EXC2
 	char * q = strtok(NULL, " \t");
 	//Number of queries
 	int n=0;

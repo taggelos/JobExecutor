@@ -17,71 +17,80 @@ void worker(char** w2j, char** j2w, int workersNum){
 					perror("fifo open problem");
 					exit(3);
 				}
+				//Read Paths
 				int pathsNum;
-				char** paths = readPaths(fdsJ2w ,pathsNum);
-				int documentsNum = 0;
-				char ** mydirFiles = readDirs(paths, pathsNum, documentsNum);
-				int lineNum;
-				for (int j=0; j <documentsNum; j++){
-					lineNum = 0;
-					char ** documents = readFile(mydirFiles[j],lineNum);
-					//Insert in Trie and take number of words for each sentence
-					int *nwords = new int [lineNum+1]();
-					Trie *trie = insertTrie(documents,lineNum,nwords);
+				char** paths = readArray(fdsJ2w ,pathsNum);
+				//Read Directories
+				int filesNum = 0;
+				char ** mydirFiles = readDirs(paths, pathsNum, filesNum);
+				//For each file the nwords
+				int** nwordsFiles = new int*[filesNum];
+				//For each file the documents
+				char*** documentsFiles = new char**[filesNum];
+				//For each file the number of lines
+				int* lineNumFiles = new int[filesNum];
+				//Our Trie
+				Trie* trie = new Trie;			
+				wInsertTrie(filesNum, mydirFiles, nwordsFiles, documentsFiles, lineNumFiles, trie);
 
-
-					//Delete nwords
-					delete[] nwords;
-					//Delete trie
-					delete trie;
-					//Free Document
-					free2D(documents,lineNum);
+				//Loop through commands
+				char cmd='x';
+				while(cmd !='e'){
+					if (read(fdsJ2w, &cmd, sizeof(char)) < 0){
+						perror("Problem in reading the number of paths");
+						exit(4);
+					}
+					if (cmd == 's') wSearch(fdsJ2w,trie,nwordsFiles,documentsFiles,lineNumFiles, filesNum);
+					//else if (cmd == 'i') wMincount();
+					//else if (cmd == 'a') wMaxcount();
+					//else if (cmd == 'w') wWc();
+					///else continue;
+					///writeLog();
 				}
-				///fflush(stdout);
-				free2D(mydirFiles, documentsNum);
-				free2D(paths, pathsNum);
+				cout << " Process ended with " << cmd << endl;
+				//Free all the structures used
+				freeAll(mydirFiles, paths, pathsNum, filesNum, nwordsFiles, documentsFiles, lineNumFiles, trie);
 				exit(0);
 		}
 	}
 }
 
+void wSearch(int fd, Trie* trie, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, int filesNum){
+	cout << "Start wsearch command" << endl;
+	//Number of queries
+	int numWords;
+	char** words = readArray(fd,numWords);
+	//for (int i=0; i <filesNum; i++){
+	//	search(trie, lineNumFiles[i], 10, documentsFiles[i], nwordsFiles[i]);
+	//}
+	char test[12] = "Test vars\n";
+	writeLog(test);
+	free2D(words,numWords);
+}
+
+void wMincount(){
+	return;
+}
+void wMaxcount(){
+	return;
+}
+void wWc(){
+	return;
+}
+
 //Read commands
-char** readCommands(int fdsJ2w){
+char** readCommands(int fd){
 	cout << "Commands "<<endl;
 	/*char cmd;
-	if (read(fdsJ2w, &cmd, sizeof(char)) < 0) {
+	if (read(fd, &cmd, sizeof(char)) < 0) {
 		perror("Problem in reading the number of paths");
 		exit(4);
 	}*/
 	return NULL;
 }
 
-//Read paths
-char** readPaths(int fdsJ2w, int& pathsNum){
-	cout << "Paths "<<endl;
-	if (read(fdsJ2w, &pathsNum, sizeof(int)) < 0) {
-		perror("Problem in reading the number of paths");
-		exit(4);
-	}
-	char** paths = new char*[pathsNum];
-	int k = 0;
-	for (int j=0; j<pathsNum; j++){
-		int length;
-		if (read(fdsJ2w, &length, sizeof(int)) < 0) {
-			perror("Problem in reading length of path");
-			exit(4);
-		}
-		paths[k] = new char[length+1];
-		if (read(fdsJ2w, paths[k++], length) < 0) {
-			perror("Problem in reading path");
-			exit(4);
-		}
-		cout << getpid() << " b -> " <<endl;
-	}
-	return paths;
-}
-
-char** readDirs(char** paths, int pathsNum, int& documentsNum){
+//Read Directories
+char** readDirs(char** paths, int pathsNum, int& filesNum){
 	for (int i=0; i<pathsNum; i++){
 		DIR* dir;
 		struct dirent* entry;
@@ -90,8 +99,8 @@ char** readDirs(char** paths, int pathsNum, int& documentsNum){
 			int j = 0;
 			//Count number of files (and directories), except the hidden ones
 			//If there is a directory inside the files, it will be handled when we open them
-			while ((entry = readdir(dir)) != NULL) if (entry->d_name[0] != '.') documentsNum++;
-			char** documents = new char*[documentsNum];			
+			while ((entry = readdir(dir)) != NULL) if (entry->d_name[0] != '.') filesNum++;
+			char** documents = new char*[filesNum];			
 			rewinddir(dir);
 			//Store all files (and directories), except the hidden ones
 			while ((entry = readdir(dir)) != NULL) if (entry->d_name[0] != '.'){
@@ -120,4 +129,59 @@ char** readDirs(char** paths, int pathsNum, int& documentsNum){
 	}
 	perror ("Could not open directory");
 	exit(5);
+}
+
+void wInsertTrie(int filesNum, char** mydirFiles, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, Trie* trie){	
+	for (int i=0; i <filesNum; i++){
+		lineNumFiles[i] = 0;
+		//cout << " dirFile-> "<< mydirFiles[i] <<endl;
+		documentsFiles[i] = readFile(mydirFiles[i],lineNumFiles[i]);
+		//cout << " -> " << documentsFiles[i][0] <<endl;
+		//Insert in Trie and take number of words for each sentence
+		nwordsFiles[i] = new int[lineNumFiles[i]+1]();
+		insertTrie(trie, documentsFiles[i],lineNumFiles[i],nwordsFiles[i]);
+		//cout << " nword-> " << nwordsFiles[i][0] <<endl;
+		//cout << " lineNum -> " << lineNumFiles[i] << endl;
+		//cout << " documentsFiles -> " << documentsFiles[i][0] << endl;
+	}
+}
+
+void writeLog(char* arg){
+	char fileName[12] = "log/Worker_";
+	//Pid can reach 32768 for 32 bit systems or 4194304 for 64 bit, so 11 bits and 1 for '\0'
+	char pid[8];
+	snprintf(pid, 8, "%ld", (long)getpid());
+	//11 for fileName, 7 for pid and 1 for '\0'
+	char* workerName = new char[19];
+	strcpy(workerName,fileName);
+	strcat(workerName,pid);	
+
+	FILE* file;
+	file = fopen(workerName, "a");
+	if (file == NULL){
+		cerr << "Error opening file" << endl;
+		exit(5);
+	}
+	else {
+		fprintf(file,"%s",arg);
+	}
+	delete[] workerName;
+}
+
+void freeAll(char ** mydirFiles, char** paths, int pathsNum, int filesNum, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, Trie* trie){
+	for (int i=0; i <filesNum; i++){
+		//Delete nwords
+		delete[] nwordsFiles[i];
+		//Free Document
+		free2D(documentsFiles[i],lineNumFiles[i]);
+	}
+	//Delete trie
+	delete trie;
+	//Delete lineNums
+	delete[] lineNumFiles;
+	delete[] nwordsFiles;
+	delete[] documentsFiles;
+	///fflush(stdout);
+	free2D(mydirFiles, filesNum);
+	free2D(paths, pathsNum);
 }

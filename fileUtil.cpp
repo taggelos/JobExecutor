@@ -47,7 +47,7 @@ char** readFile(char* myFile, int &lines){
 			}
 			documents[i] = new char[size+1-strlen(token)];
 			strcpy(documents[i],mystring+strlen(token)+1);
-			cout << "  " << documents[i] << "  "<< endl;	
+			cout << "  " << documents[i] << "  "<< endl;
 		}
 		if(mystring!=NULL) free(mystring);
 		fclose (file);

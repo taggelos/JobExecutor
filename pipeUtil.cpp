@@ -4,7 +4,7 @@
 void storeFds(char**& w2j, char**& j2w, int workersNum){
 	w2j = new char*[workersNum];
 	j2w = new char*[workersNum];
-	for (int i=0; i<workersNum; i++){				
+	for (int i=0; i<workersNum; i++){
 		//strlen(".w2j") + INT_MAX + '\0' = 15
 		w2j[i] = new char[15];
 		//Each file descriptor will have an increasing number
@@ -29,7 +29,7 @@ void storeFds(char**& w2j, char**& j2w, int workersNum){
 }
 
 void freeFds(char** w2j, char** j2w, int workersNum){
-	for (int i=0; i<workersNum; i++){		
+	for (int i=0; i<workersNum; i++){
 		if(unlink(w2j[i]) < 0) {
 			if (errno!=EEXIST){
 				perror("unlink failed");

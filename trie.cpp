@@ -92,7 +92,7 @@ PostingList* Trie::search(const char* word){
 				//Level down for next Letter
 				temp=temp->down;
 		}
-		//Last letter will return NULL or the Posting List of the result		
+		//Last letter will return NULL or the Posting List of the result
 	}
 	return temp->plist;
 }

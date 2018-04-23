@@ -24,7 +24,7 @@ void insertTrie(Trie* trie, const char* pathName, char** documents, const int& l
 }
 
 //The new search for this exercise, topK by default 10
-bool trieSearch(Trie* trie, char** words, const int& numWords, const int& N, char** documents, int* nwords, char** sortedResults, int* linesFound, int numResults){
+bool trieSearch(Trie* trie, char** words, const int& numWords, const int& N, char** documents, int* nwords, char** winnerLines, int* linesFound, int numResults){
 	//Scores
 	double bm25 [N]={};
 	//To find if a score cell was 0 or became 0
@@ -59,7 +59,7 @@ bool trieSearch(Trie* trie, char** words, const int& numWords, const int& N, cha
 		}
 	}
 
-	sortedResults = new char*[numResults];
+	winnerLines = new char*[numResults];
 	linesFound = new int[numResults];
 	HeapNode* hn;
 	for (int i=0; i<=numResults; i++){
@@ -67,22 +67,31 @@ bool trieSearch(Trie* trie, char** words, const int& numWords, const int& N, cha
 		hn = h.popMax();
 		if(hn==NULL) break;
 		linesFound[i] = hn->id;
-		sortedResults[i] = new char[strlen(documents[hn->id])+1];
-		strcpy(sortedResults[i],documents[hn->id]);
+		winnerLines[i] = new char[strlen(documents[hn->id])+1];
+		strcpy(winnerLines[i],documents[hn->id]);
 		delete hn;
 	}
 
-	// for (int i=1; i<=K; i++){
-	// 	//Take max valued scores
-	// 	hn = h.popMax();
-	// 	if(hn==NULL) break;
-	// 	char *original = documents[hn->id];
-	// 	char *underline = createUnderLine(original, words, numWords);
-	// 	specialPrint(i,hn,underline,original);
-	// 	delete[] underline;
-	// 	delete hn;
-	// }
+	
 	return true;
+}
+
+void printResults(char** documents, char** words, int numWords, int* linesFound, int numResults){
+	//Insert to heap
+	Heap h(numResults);
+	for (int i=0; i<=numResults; i++){
+		h.add(linesFound[i],0); // bm25[i] vs 0
+	}
+	HeapNode* hn;
+	for (int i=0; i<=numResults; i++){
+		hn = h.popMax();
+		if(hn==NULL) break;
+		char *original = documents[hn->id];
+		char *underline = createUnderLine(original, words, numWords);
+		specialPrint(i,hn,underline,original);
+		delete[] underline;
+		delete hn;
+	}
 }
 
 //Fill with Spaces and Tabs (for underline)

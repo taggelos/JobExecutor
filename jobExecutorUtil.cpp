@@ -17,14 +17,8 @@ void jobExecutor(char** w2j, char** j2w, char* inputFile, char** paths, int path
 			perror("fifo open error"); 
 			exit(4);
 		}
-		/*strcpy(msgbuf,"testing");
-		if ((nwrite = write(fdsJ2w[i], msgbuf, MSGSIZE+1)) == -1){
-			perror("Error in Writing");
-			exit(2);
-		}*/
 	}
 	loadBalancer(paths, pathsNum, workersNum, fdsJ2w);
-		
 	cout << "Your file: '"<< inputFile <<"' was processed!"<< endl << "Type your commands.." <<endl;
 	//Read Command
 	char *cmd;
@@ -84,11 +78,12 @@ void jSearch(int* fd, int* fdReceive, int workers){
 	int numWords = wlist.countWords();
 	//Array of queries
 	char** words = wlist.returnAsArray();
+	//Count how many workers finished correctly
+	int finishedWorkers=0;
 	//For every worker
 	for (int i=0; i<workers; i++){
-		//Send keywords		
+		//Send keywords	
 		writeArray(fd[i], words, numWords);
-		char noWordsFound[13] = "noWordsFound";
 		//Number of files
 		int filesNum;
 		//Argument to understand if there are results to read from
@@ -100,7 +95,7 @@ void jSearch(int* fd, int* fdReceive, int workers){
 		readInt(fdReceive[i],filesNum);
 		for (int j=0; j<filesNum; j++){
 			arg = readString(fdReceive[i]);
-			if(!strcmp(arg,noWordsFound)) {
+			if(!strcmp(arg,"NoWordsFound")){
 				delete[] arg;
 				continue;
 			}
@@ -113,7 +108,11 @@ void jSearch(int* fd, int* fdReceive, int workers){
 			delete[] arg;
 			free2D(winnerLines,numResults);
 		}
+		char* timeout = readString(fdReceive[i]);
+		if(strcmp(timeout,"TimeOut")) finishedWorkers++;
+		delete[] timeout;
 	}
+	cout << "Workers finished: " << finishedWorkers <<" out of "<< workers <<endl;
 	free2D(words,numWords);
 }
 
@@ -198,7 +197,7 @@ void wcInputCheck(){
 	char * q = strtok(NULL, " \t");
 	int n=0;
 	//Take given arguments
-	while(q != NULL && n<1){	
+	while(q != NULL && n<1){
 		q = strtok(NULL, " \t");
 		n++;
 	}

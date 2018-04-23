@@ -37,7 +37,7 @@ void worker(char** w2j, char** j2w, int workersNum){
 				//For each file the number of lines
 				int* lineNumFiles = new int[filesNum];
 				//Our Trie
-				Trie* trie = new Trie;			
+				Trie* trie = new Trie;
 				wInsertTrie(filesNum, mydirFiles, nwordsFiles, documentsFiles, lineNumFiles, trie);
 
 				//Loop through commands
@@ -80,7 +80,7 @@ void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** document
 		int* linesFound = NULL;
 		//Total number of lines with results
 		int numResults=0;
-		//By default 10 for top K results		
+		//By default 10 for top K results
 		if (trieSearch(trie, words, numWords, lineNumFiles[i], documentsFiles[i], nwordsFiles[i], winnerLines, linesFound, numResults)){
 			//path of the file 
 			writeString(fdSend,mydirFiles[i]);
@@ -88,8 +88,8 @@ void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** document
 			writeIntArray(fdSend,linesFound,numResults);
 			delete[] linesFound;
 			free2D(winnerLines,numResults);
-		}		
-		char noWordsFound[13] = "noWordsFound";
+		}
+		char noWordsFound[13] = "NoWordsFound";
 		writeString(fdSend,noWordsFound);
 	}
 
@@ -100,7 +100,14 @@ void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** document
 	}
 	double duration = (clock()-start) / (double) CLOCKS_PER_SEC;
 	//cout << words[numWords-1] << " OREEE " << deadline << " - " << duration << endl;
-	if (deadline > duration) cout << "printf: " << duration <<'\n'; //fdSend results else fdSend empty to count how many did not answer
+	if (deadline > duration){
+		char timeOut[13] = "TimeOut";
+		writeString(fdSend,timeOut);//fdSend results else fdSend empty to count how many did not answer
+	}
+	else {
+		char allGood[13] = "AllGood";
+		writeString(fdSend,allGood);
+	}
 	free2D(words,numWords);
 }
 
@@ -159,7 +166,7 @@ char** readDirs(char** paths, int pathsNum, int& filesNum){
 			//Count number of files (and directories), except the hidden ones
 			//If there is a directory inside the files, it will be handled when we open them
 			while ((entry = readdir(dir)) != NULL) if (entry->d_name[0] != '.') filesNum++;
-			char** documents = new char*[filesNum];			
+			char** documents = new char*[filesNum];
 			rewinddir(dir);
 			//Store all files (and directories), except the hidden ones
 			while ((entry = readdir(dir)) != NULL) if (entry->d_name[0] != '.'){

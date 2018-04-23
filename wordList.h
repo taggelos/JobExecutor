@@ -30,7 +30,7 @@ public:
 	bool searchInputCheck();
 	int countWords();
 	char** returnAsArray();
-	~WordList();	
+	~WordList();
 };
 
 bool numberCheck(char *str);

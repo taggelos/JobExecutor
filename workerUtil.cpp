@@ -47,7 +47,7 @@ void worker(char** w2j, char** j2w, int workersNum){
 						perror("Problem in reading the number of paths");
 						exit(4);
 					}
-					if (cmd == 's') wSearch(fdsJ2w, fdsW2j, trie, nwordsFiles, documentsFiles, lineNumFiles, filesNum);
+					if (cmd == 's') wSearch(fdsJ2w, fdsW2j, trie, nwordsFiles, documentsFiles, lineNumFiles, mydirFiles, filesNum);
 					//else if (cmd == 'i') wMincount();
 					else if (cmd == 'a') wMaxcount(fdsJ2w, fdsW2j);
 					else if (cmd == 'w') wWc(fdsW2j, filesNum, nwordsFiles, lineNumFiles);
@@ -62,7 +62,7 @@ void worker(char** w2j, char** j2w, int workersNum){
 	}
 }
 
-void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, int filesNum){
+void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, char** mydirFiles, int filesNum){
 	cout << "Start wsearch command" << " pid->" <<getpid() << endl;
 	//Start counting time
 	clock_t start;
@@ -71,15 +71,28 @@ void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** document
 	int numWords;
 	char** words = readArray(fd,numWords);
 	double deadline = (double) atoi(words[0]);
-	
-	//for (int i=0; i <filesNum; i++){
-	//	search(trie, lineNumFiles[i], 10, documentsFiles[i], nwordsFiles[i]);
-	//Results
-	//char* path //path of the file
-	// int * linesNumber //containing one or more from the words
-	// char** lines //containing one or more from the words
-	//}
-	//char ** with pathnames for results, to send to write logs
+
+	writeInt(fdSend,filesNum);
+	for (int i=0; i <filesNum; i++){
+		//Lines that were found
+		char** winnerLines = NULL;
+		//Number of lines with results
+		int* linesFound = NULL;
+		//Total number of lines with results
+		int numResults=0;
+		//By default 10 for top K results		
+		if (trieSearch(trie, words, numWords, lineNumFiles[i], documentsFiles[i], nwordsFiles[i], winnerLines, linesFound, numResults)){
+			//path of the file 
+			writeString(fdSend,mydirFiles[i]);
+			writeArray(fdSend,winnerLines,numResults);
+			writeIntArray(fdSend,linesFound,numResults);
+			delete[] linesFound;
+			free2D(winnerLines,numResults);
+		}		
+		char noWordsFound[13] = "noWordsFound";
+		writeString(fdSend,noWordsFound);
+	}
+
 	char cmd[7] = "search";
 	//Without the -d flag and its value, iterate through the words
 	for (int i=2; i<numWords; i++){

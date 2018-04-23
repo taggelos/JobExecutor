@@ -1,7 +1,7 @@
 CPP = g++ -Wall -Wextra -Wconversion -g -lm
 OUT = minisearch
 DATA = test.txt
-OBJS = main.o fileUtil.o trieUtil.o wordList.o postingList.o heap.o trie.o jobExecutorUtil.o workerUtil.o
+OBJS = main.o fileUtil.o pipeUtil.o trieUtil.o wordList.o postingList.o heap.o trie.o jobExecutorUtil.o workerUtil.o
 
 $(OUT): $(OBJS)
 	$(CPP) $^ -o $@

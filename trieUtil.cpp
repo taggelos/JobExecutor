@@ -24,7 +24,7 @@ void insertTrie(Trie* trie, const char* pathName, char** documents, const int& l
 }
 
 //The new search for this exercise, topK by default 10
-void trieSearch(Trie* trie, char** words, const int& numWords, const int& N, char** documents, int* nwords, const int K=10){
+bool trieSearch(Trie* trie, char** words, const int& numWords, const int& N, char** documents, int* nwords, char** sortedResults, int* linesFound, int numResults){
 	//Scores
 	double bm25 [N]={};
 	//To find if a score cell was 0 or became 0
@@ -45,29 +45,44 @@ void trieSearch(Trie* trie, char** words, const int& numWords, const int& N, cha
 
 	if(flag){
 		cout << "Nothing found!" <<endl;
-		return;
+		return false;
 	}
 
 	//Insert to heap
 	Heap h(N);
+	numResults=0;
 	for (int i=0; i<N; i++){
 		//Only values that became zero
 		if (bm25flags[i]){
 			h.add(i,bm25[i]);
+			numResults++;
 		}
 	}
 
+	sortedResults = new char*[numResults];
+	linesFound = new int[numResults];
 	HeapNode* hn;
-	for (int i=1; i<=K; i++){
+	for (int i=0; i<=numResults; i++){
 		//Take max valued scores
 		hn = h.popMax();
 		if(hn==NULL) break;
-		char *original = documents[hn->id];
-		char *underline = createUnderLine(original, words, numWords);
-		specialPrint(i,hn,underline,original);
-		delete[] underline;
+		linesFound[i] = hn->id;
+		sortedResults[i] = new char[strlen(documents[hn->id])+1];
+		strcpy(sortedResults[i],documents[hn->id]);
 		delete hn;
 	}
+
+	// for (int i=1; i<=K; i++){
+	// 	//Take max valued scores
+	// 	hn = h.popMax();
+	// 	if(hn==NULL) break;
+	// 	char *original = documents[hn->id];
+	// 	char *underline = createUnderLine(original, words, numWords);
+	// 	specialPrint(i,hn,underline,original);
+	// 	delete[] underline;
+	// 	delete hn;
+	// }
+	return true;
 }
 
 //Fill with Spaces and Tabs (for underline)

@@ -5,7 +5,7 @@
 #define TRIEUTIL_H
 
 void insertTrie(Trie* trie, const char* pathName, char** documents, const int& lineNum, int* nwords);
-void trieSearch(Trie* trie, char** words, const int& numWords, const int& N, char** documents, int* nwords, const int& K=10);
+bool trieSearch(Trie* trie, char** words, const int& numWords, const int& N, char** documents, int* nwords, char** sortedResults, int* linesFound, int numResults);
 void printSpaces(int num);
 void printLine(int start, int letters, char* arr);
 void specialPrint(int i, HeapNode* hn, char * underline, char* original);

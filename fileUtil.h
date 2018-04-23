@@ -36,6 +36,8 @@ char* readString(int fd);
 void writeString(int fd, char* str);
 void readInt(int fd, int& n);
 void writeInt(int fd, int n);
+int* readIntArray(int fd, int& lines);
+void writeIntArray(int fd, int* arr, int lines);
 //void readDouble(int fd, double& n);
 //void writeDouble(int fd, double n);
 void free2D(char ** paths, const int& lineNum);

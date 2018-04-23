@@ -66,8 +66,6 @@ void loadBalancer(char** paths, int pathsNum, int workers, int* fd){
 	int surplus = pathsNum % workers;
 	//Index for specific path in paths
 	int k = 0;
-	//Length of each pathname
-	int length;
 	for (int i=0; i<workers; i++){
 		int size = equalParts;
 		if (i < surplus) size++;
@@ -88,9 +86,33 @@ void jSearch(int* fd, int* fdReceive, int workers){
 	char** words = wlist.returnAsArray();
 	//For every worker
 	for (int i=0; i<workers; i++){
-		//for every file{}
+		//Send keywords		
 		writeArray(fd[i], words, numWords);
-		//read sth? and then dont forget delete
+		char noWordsFound[13] = "noWordsFound";
+		//Number of files
+		int filesNum;
+		//Argument to understand if there are results to read from
+		char * arg;
+		int numResults;
+		char* winnerPath;
+		char** winnerLines;
+		int* linesFound;
+		readInt(fdReceive[i],filesNum);
+		for (int j=0; j<filesNum; j++){
+			arg = readString(fdReceive[i]);
+			if(!strcmp(arg,noWordsFound)) {
+				delete[] arg;
+				continue;
+			}
+			winnerPath = readString(fdReceive[i]);
+			winnerLines = readArray(fdReceive[i],numResults);
+			linesFound = readIntArray(fdReceive[i],numResults);
+			cout << "WINNERPATH " << winnerPath << endl;
+			delete[] winnerPath;
+			delete[] linesFound;
+			delete[] arg;
+			free2D(winnerLines,numResults);
+		}
 	}
 	free2D(words,numWords);
 }

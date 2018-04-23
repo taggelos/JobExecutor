@@ -24,15 +24,15 @@ class Trie {
 	//Word counter
 	int numWords;
 	//Maximum length of word
-	int maxLen; 
+	int maxLen;
 public:
 	Trie();
-	void add(const char* word, const int& lineNum);
+	void add(const char* word, const int& lineNum, const char* pathName);
 	PostingList* search(const char* word);
 	void findAll();
 	void traverse(Node* n,char* word,int i);
 	void traverseDel(Node* n);
-	~Trie();	
+	~Trie();
 };
 
 #endif

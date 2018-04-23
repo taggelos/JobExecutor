@@ -28,7 +28,7 @@ Trie::Trie(){
 	maxLen = 0;
 }
 
-void Trie::add(const char* word, const int& lineNum){
+void Trie::add(const char* word, const int& lineNum, const char* pathName){
 	Node* temp = head;
 	//Splitting word into letters
 	int len = (int)strlen(word);
@@ -47,7 +47,7 @@ void Trie::add(const char* word, const int& lineNum){
 				temp = temp->right->down;
 			}
 			//Last letter of word marked with Posting List
-			else temp->right->plist = new PostingList(lineNum);
+			else temp->right->plist = new PostingList(lineNum, pathName);
 			//Count the new Node we created
 			numNodes++;
 		}
@@ -64,7 +64,7 @@ void Trie::add(const char* word, const int& lineNum){
 			else{
 				//Last letter of word
 				//Mark Leaf with PostingList if it does not exist
-				if(temp->plist == NULL) temp -> plist = new PostingList(lineNum);
+				if(temp->plist == NULL) temp -> plist = new PostingList(lineNum, pathName);
 				//Leaf node means we met an old word
 				else temp->plist->add(lineNum);
 			}

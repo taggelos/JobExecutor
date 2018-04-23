@@ -12,7 +12,7 @@ class PostingList {
 		//Number of document line
 		int line;
 		//Times the word was found in a sentence
-		int count; 
+		int count;
 		Node* next;
 		Node(int line);
 	};
@@ -21,10 +21,12 @@ class PostingList {
 	int numNodes;
 	//Total times the word was found
 	int totalTimes;
+	//Path name
+	const char* pathName; 
 	double idf(const int& n, const int& nqi);
 	double fscore(const double& idf, const int& tf, const double& avgdl, const int& D, const double& k1 = 1.2, const double& b = 0.75);
 public:
-	PostingList(int line);
+	PostingList(int line, const char* pathName);
 	void add(int line);
 	//Number of times a word appears in the file, if needed in future problem
 	int getTotalTimes();

@@ -10,11 +10,12 @@ PostingList::Node::Node(int l){
 	count= 1;
 }
 
-PostingList::PostingList(int line){
+PostingList::PostingList(int line, const char* p){
 	//Initialise our first Node, head
 	head = new Node(line);
 	numNodes = 1;
 	totalTimes = 1;
+	pathName = p;
 }
 
 void PostingList::add(int line){

@@ -74,6 +74,10 @@ void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** document
 	
 	//for (int i=0; i <filesNum; i++){
 	//	search(trie, lineNumFiles[i], 10, documentsFiles[i], nwordsFiles[i]);
+	//Results
+	//char* path //path of the file
+	// int * linesNumber //containing one or more from the words
+	// char** lines //containing one or more from the words
 	//}
 	//char ** with pathnames for results, to send to write logs
 	char cmd[7] = "search";
@@ -181,14 +185,14 @@ void wInsertTrie(int filesNum, char** mydirFiles, int** nwordsFiles, char*** doc
 		//cout << " -> " << documentsFiles[i][0] <<endl;
 		//Insert in Trie and take number of words for each sentence
 		nwordsFiles[i] = new int[lineNumFiles[i]+1]();
-		insertTrie(trie, documentsFiles[i],lineNumFiles[i],nwordsFiles[i]);
+		insertTrie(trie, mydirFiles[i], documentsFiles[i],lineNumFiles[i],nwordsFiles[i]);
 		//cout << " nword-> " << nwordsFiles[i][0] <<endl;
 		//cout << " lineNum -> " << lineNumFiles[i] << endl;
 		//cout << " documentsFiles -> " << documentsFiles[i][0] << endl;
 	}
 }
 
-void writeLog(int time, char* query, char* str, char* winnerPath, char** paths, int num, int bytes, int wordsNum){
+void writeLog(int time, char* query, char* str, char* winnerPath, char** paths, int num, int bytes, int numWords){
 	char fileName[12] = "log/Worker_";
 	//Pid can reach 32768 for 32 bit systems or 4194304 for 64 bit, so 11 bits and 1 for '\0'
 	char pid[8];
@@ -232,7 +236,7 @@ void writeLog(int time, char* query, char* str, char* winnerPath, char** paths, 
 			//We use num variable to send the number of lines in this case
 			fprintf(file,"%d",num);
 			fprintf(file,"%s", " : ");
-			fprintf(file,"%d",wordsNum);
+			fprintf(file,"%d",numWords);
 		}
 		fprintf(file,"%s", "\n");
 	}

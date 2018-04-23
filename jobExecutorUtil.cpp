@@ -87,7 +87,7 @@ void jSearch(int* fd, int* fdReceive, int workers){
 	//Array of queries
 	char** words = wlist.returnAsArray();
 	//For every worker
-	for (int i=0; i<workers; i++) {
+	for (int i=0; i<workers; i++){
 		//for every file{}
 		writeArray(fd[i], words, numWords);
 		//read sth? and then dont forget delete

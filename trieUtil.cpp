@@ -1,7 +1,7 @@
 //Function Definitions
 #include "trieUtil.h"
 
-void insertTrie(Trie* trie, const char* pathName, char** documents, const int& lineNum, int* nwords){
+void insertTrie(Trie* trie, char* pathName, char** documents, const int& lineNum, int* nwords){
 	char * word;
 	//So as not to change original
 	char * templine;
@@ -24,7 +24,7 @@ void insertTrie(Trie* trie, const char* pathName, char** documents, const int& l
 }
 
 //The new search for this exercise, topK by default 10
-bool trieSearch(Trie* trie, char** words, const int& numWords, const int& N, char** documents, int* nwords, char** winnerLines, int* linesFound, int numResults){
+char** trieSearch(Trie* trie, char** words, const int& numWords, const int& N, char** documents, int* nwords, int*& linesFound, int& numResults){
 	//Scores
 	double bm25 [N]={};
 	//To find if a score cell was 0 or became 0
@@ -33,7 +33,6 @@ bool trieSearch(Trie* trie, char** words, const int& numWords, const int& N, cha
 	double avgdl = (double) nwords[N] / N;
 	//Flag to see if we found any word
 	bool flag = true;
-
 	for(int i=0; i<numWords; i++){
 		PostingList* plist = trie->search(words[i]);
 		if (plist!=NULL){
@@ -42,12 +41,10 @@ bool trieSearch(Trie* trie, char** words, const int& numWords, const int& N, cha
 			plist->score(bm25, bm25flags, avgdl, N, nwords);
 		}
 	}
-
 	if(flag){
 		cout << "Nothing found!" <<endl;
-		return false;
+		return NULL;
 	}
-
 	//Insert to heap
 	Heap h(N);
 	numResults=0;
@@ -58,8 +55,7 @@ bool trieSearch(Trie* trie, char** words, const int& numWords, const int& N, cha
 			numResults++;
 		}
 	}
-
-	winnerLines = new char*[numResults];
+	char** winnerLines = new char*[numResults];
 	linesFound = new int[numResults];
 	HeapNode* hn;
 	for (int i=0; i<=numResults; i++){
@@ -71,9 +67,20 @@ bool trieSearch(Trie* trie, char** words, const int& numWords, const int& N, cha
 		strcpy(winnerLines[i],documents[hn->id]);
 		delete hn;
 	}
+	return winnerLines;
+}
 
-	
-	return true;
+//Find how many times a word appears
+char* trieTimes(char* keyword, int& count, Trie* trie){
+	//Counter to see how many times we found the word
+	char* pathName =NULL;
+	PostingList* plist = trie->search(keyword);
+	if (plist!=NULL){
+		count=plist->getTotalTimes();
+		//pathName = new char[strlen(plist->getPathName())+1];
+		////strcpy(pathName,plist->getPathName());
+	}
+	return pathName;
 }
 
 void printResults(char** documents, char** words, int numWords, int* linesFound, int numResults){

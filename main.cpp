@@ -24,7 +24,7 @@ int main(int argc, char* argv[]){
 	//start JobExecutor
 	jobExecutor(w2j, j2w, inputFile, paths, pathsNum, workersNum);
 	//Delete the arrays of file descriptors
-	freeFds(w2j, j2w, workersNum);	
+	freeFds(w2j, j2w, workersNum);
 	//Free Document
 	free2D(paths, pathsNum);
 	exit(0);

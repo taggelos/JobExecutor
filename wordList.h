@@ -1,6 +1,5 @@
 // Header --> Functions Declarations
 #include <iostream>
-#include "postingList.h"
 #include "trie.h"
 #include "heap.h"
 #include <math.h> //log //floor

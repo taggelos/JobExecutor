@@ -86,29 +86,28 @@ void jSearch(int* fd, int* fdReceive, int workers){
 		writeArray(fd[i], words, numWords);
 		//Number of files
 		int filesNum;
-		//Argument to understand if there are results to read from
-		char * arg;
 		int numResults;
+		//Holds winner path or "NoWordsFound"
 		char* winnerPath;
 		char** winnerLines;
 		int* linesFound;
 		readInt(fdReceive[i],filesNum);
 		for (int j=0; j<filesNum; j++){
-			arg = readString(fdReceive[i]);
-			if(!strcmp(arg,"NoWordsFound")){
-				delete[] arg;
+			winnerPath = readString(fdReceive[i]);
+			if(!strcmp(winnerPath,"NoWordsFound")){
+				//cout << "JOBEXE NoWordsFound" << endl;
+				delete[] winnerPath;
 				continue;
 			}
-			winnerPath = readString(fdReceive[i]);
 			winnerLines = readArray(fdReceive[i],numResults);
 			linesFound = readIntArray(fdReceive[i],numResults);
-			cout << "WINNERPATH " << winnerPath << endl;
+			//cout << "WINNERPATH " << winnerPath << " with numResults " << numResults << " winnerline1 " << winnerLines[0]<< endl;
 			delete[] winnerPath;
 			delete[] linesFound;
-			delete[] arg;
 			free2D(winnerLines,numResults);
 		}
 		char* timeout = readString(fdReceive[i]);
+		//cout << "axxxxx " << timeout <<endl;
 		if(strcmp(timeout,"TimeOut")) finishedWorkers++;
 		delete[] timeout;
 	}
@@ -141,16 +140,16 @@ void jWc(int* fd, int* fdSend, int workers){
 	wcInputCheck();
 	//Use the 'w' letter to designate our search command
 	sendCmd('w', fdSend, workers);
-	int lineNums, nwords, sumLineNums = 0, sumNwords = 0; 
+	int lineNums, nwords, sumLineNums = 0, sumNwords = 0, totalChars=0, fileChars; 
 	for (int i=0; i<workers; i++){
-		//readInt(fd[i], bytes);
-		//sumBytes += bytes;
+		readInt(fd[i], fileChars);
+		totalChars += fileChars;
 		readInt(fd[i], lineNums);
 		sumLineNums += lineNums;
 		readInt(fd[i], nwords);
 		sumNwords += nwords;
 	}
-	cout << "WC JOBEXE-> " <<  " lineNums-> " <<sumLineNums << " nwords -> " << sumNwords <<endl;
+	cout << "WC JOBEXE-> " <<  " lineNums-> " <<sumLineNums << " nwords -> " << sumNwords << " totalChars -> " << totalChars <<endl;
 }
 
 bool searchInputCheck(WordList& wlist){

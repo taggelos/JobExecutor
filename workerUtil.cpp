@@ -27,7 +27,7 @@ void worker(char** w2j, char** j2w, int workersNum){
 				int pathsNum;
 				char** paths = readArray(fdsJ2w ,pathsNum);
 				//for (int i=0; i<pathsNum; i++) cout << "-worker--- "<< paths[i]<<endl; TODELETE
-				//Read Directories
+				//Read Directories and hold full path names
 				int filesNum = 0;
 				char ** mydirFiles = readDirs(paths, pathsNum, filesNum);
 				//For each file the nwords
@@ -38,7 +38,8 @@ void worker(char** w2j, char** j2w, int workersNum){
 				int* lineNumFiles = new int[filesNum];
 				//Our Trie
 				Trie* trie = new Trie;
-				wInsertTrie(filesNum, mydirFiles, nwordsFiles, documentsFiles, lineNumFiles, trie);
+				int totalChars=0;
+				wInsertTrie(filesNum, mydirFiles, nwordsFiles, documentsFiles, lineNumFiles, trie, totalChars);
 
 				//Loop through commands
 				char cmd='x';
@@ -49,8 +50,8 @@ void worker(char** w2j, char** j2w, int workersNum){
 					}
 					if (cmd == 's') wSearch(fdsJ2w, fdsW2j, trie, nwordsFiles, documentsFiles, lineNumFiles, mydirFiles, filesNum);
 					//else if (cmd == 'i') wMincount();
-					else if (cmd == 'a') wMaxcount(fdsJ2w, fdsW2j);
-					else if (cmd == 'w') wWc(fdsW2j, filesNum, nwordsFiles, lineNumFiles);
+					else if (cmd == 'a') wMaxcount(fdsJ2w, fdsW2j, trie);
+					else if (cmd == 'w') wWc(fdsW2j, filesNum, nwordsFiles, lineNumFiles, totalChars);
 					///else continue;
 					///writeLog();
 				}
@@ -73,7 +74,7 @@ void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** document
 	double deadline = (double) atoi(words[0]);
 
 	writeInt(fdSend,filesNum);
-	for (int i=0; i <filesNum; i++){
+	for (int i=0; i<filesNum; i++){
 		//Lines that were found
 		char** winnerLines = NULL;
 		//Number of lines with results
@@ -81,32 +82,38 @@ void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** document
 		//Total number of lines with results
 		int numResults=0;
 		//By default 10 for top K results
-		if (trieSearch(trie, words, numWords, lineNumFiles[i], documentsFiles[i], nwordsFiles[i], winnerLines, linesFound, numResults)){
-			//path of the file 
+		if ((winnerLines = trieSearch(trie, words, numWords, lineNumFiles[i], documentsFiles[i], nwordsFiles[i], linesFound, numResults))!=NULL){
+			//Send path of the file
 			writeString(fdSend,mydirFiles[i]);
+			//Send winner lines
 			writeArray(fdSend,winnerLines,numResults);
+			//Send numbers of winner lines
 			writeIntArray(fdSend,linesFound,numResults);
 			delete[] linesFound;
 			free2D(winnerLines,numResults);
+			continue;
 		}
-		char noWordsFound[13] = "NoWordsFound";
+		cout << "SEnding NoWordsFound " << i << " documents " << mydirFiles[i] <<endl;
+		char noWordsFound[] = "NoWordsFound";
 		writeString(fdSend,noWordsFound);
 	}
 
-	char cmd[7] = "search";
 	//Without the -d flag and its value, iterate through the words
 	for (int i=2; i<numWords; i++){
-		writeLog(fd, cmd, words[i], NULL, NULL, fdSend, 0, 0); //second null and fsend to be fixed
+		writeLog("search", words[i], NULL, NULL, fdSend, 0, 0); //second null and fsend to be fixed
 	}
-	double duration = (clock()-start) / (double) CLOCKS_PER_SEC;
+
+	double duration = (double) (clock()-start) / CLOCKS_PER_SEC;
 	//cout << words[numWords-1] << " OREEE " << deadline << " - " << duration << endl;
 	if (deadline > duration){
-		char timeOut[13] = "TimeOut";
-		writeString(fdSend,timeOut);//fdSend results else fdSend empty to count how many did not answer
+		cout << "AllGood" <<endl;
+		char allGood[]  = "AllGood";
+		writeString(fdSend,allGood);
 	}
 	else {
-		char allGood[13] = "AllGood";
-		writeString(fdSend,allGood);
+		cout << "TimeOut" <<endl;
+		char timeOut[]  = "TimeOut";		
+		writeString(fdSend,timeOut);//fdSend results else fdSend empty to count how many did not answer
 	}
 	free2D(words,numWords);
 }
@@ -115,18 +122,30 @@ void wMincount(){
 	return;
 }
 
-void wMaxcount(int fd, int fdSend){
+void wMaxcount(int fd, int fdSend, Trie* trie){
 	cout << "Start wmaxcount command " <<endl;//<< filesNum << " pid->" <<getpid() << endl;
 	char* keyword = readString(fd);
-	//for (int i=0; i <filesNum; i++) sth to find max char* path
-	char winnerPath[2] = "a";
-	writeString(fdSend, winnerPath);
-	char cmd[9] = "maxcount";
-	if (strcmp(winnerPath,"")) writeLog(fd, cmd, keyword, winnerPath, NULL, fdSend, 0, 0);
+	char* maxPathName;
+	int maxFound=0;
+	int timesFound;
+	char* pathName;/*
+	for (int i=0; i<filesNum; i++){
+		timesFound=0;
+		pathName = trieTimes(keyword,timesFound, trie);
+		if(pathName!=NULL){
+			if(timesFound>maxFound){
+				maxFound=timesFound;
+				maxPathName = pathName;
+			}else delete[] pathName;
+		}
+	}
+	writeString(fdSend, maxPathName);*/
+	if (strcmp(maxPathName,"")) writeLog("maxcount", keyword, maxPathName, NULL, fdSend, 0, 0);
+	delete[] maxPathName;
 	delete[] keyword;
 }
 
-void wWc(int fd, int filesNum, int** nwordsFiles, int* lineNumFiles){
+void wWc(int fd, int filesNum, int** nwordsFiles, int* lineNumFiles, int totalChars){
 	cout << "Start wwc command " << filesNum << " pid->" <<getpid() << endl;
 	int lineNums=0;
 	int nwords=0;
@@ -135,13 +154,13 @@ void wWc(int fd, int filesNum, int** nwordsFiles, int* lineNumFiles){
 		//In the last cell we stored the total number of words in the file
 		nwords += nwordsFiles[i][lineNumFiles[i]];
 		//NUMBER OF BYTES TODO
-		cout << "i-> " << i << " line-> "<< lineNumFiles[i] << "  -  " << nwordsFiles[i][lineNumFiles[i]] <<endl;
+		cout << "i-> " << i << " line-> "<< lineNumFiles[i] << "  -  " << nwordsFiles[i][lineNumFiles[i]] << " totalChars "<< totalChars <<endl;
 	}
-	//writeInt(fd,bytes);
+	//totalChars are the bytes
+	writeInt(fd,totalChars);
 	writeInt(fd,lineNums);
 	writeInt(fd,nwords);
-	char cmd[3] = "wc";
-	writeLog(fd, cmd, NULL, NULL, NULL, lineNums, 0, nwords); //fd will become time, 0 -> bytes
+	writeLog("wc", NULL, NULL, NULL, lineNums, totalChars, nwords);
 }
 
 //Read commands
@@ -197,11 +216,14 @@ char** readDirs(char** paths, int pathsNum, int& filesNum){
 	exit(5);
 }
 
-void wInsertTrie(int filesNum, char** mydirFiles, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, Trie* trie){	
+void wInsertTrie(int filesNum, char** mydirFiles, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, Trie* trie, int& totalChars){
+	int fileChars;
 	for (int i=0; i <filesNum; i++){
 		lineNumFiles[i] = 0;
 		//cout << " dirFile-> "<< mydirFiles[i] <<endl;
-		documentsFiles[i] = readFile(mydirFiles[i],lineNumFiles[i]);
+		fileChars=0;
+		documentsFiles[i] = readFile(mydirFiles[i],lineNumFiles[i], fileChars);
+		totalChars+=fileChars;
 		//cout << " -> " << documentsFiles[i][0] <<endl;
 		//Insert in Trie and take number of words for each sentence
 		nwordsFiles[i] = new int[lineNumFiles[i]+1]();
@@ -212,15 +234,19 @@ void wInsertTrie(int filesNum, char** mydirFiles, int** nwordsFiles, char*** doc
 	}
 }
 
-void writeLog(int time, char* query, char* str, char* winnerPath, char** paths, int num, int bytes, int numWords){
-	char fileName[12] = "log/Worker_";
-	//Pid can reach 32768 for 32 bit systems or 4194304 for 64 bit, so 11 bits and 1 for '\0'
-	char pid[8];
-	snprintf(pid, 8, "%ld", (long)getpid());
-	//11 for fileName, 7 for pid and 1 for '\0'
-	char* workerName = new char[19];
-	strcpy(workerName,fileName);
-	strcat(workerName,pid);	
+void getCurrentTime(FILE* file){
+	//Find current time
+	time_t rawtime;
+	struct tm * timeinfo;
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	fprintf(file,"%d/%d/%d-%d.%d.%d",timeinfo->tm_mday, timeinfo->tm_mon+1, timeinfo->tm_year+1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+}
+
+void writeLog(const char* query, char* str, char* winnerPath, char** paths, int num, int bytes, int numWords){
+	//Pid can reach 32768 for 32 bit systems or 4194304 for 64 bit
+	char workerName[23];
+	sprintf(workerName, "log/Worker_%ld.txt", (long)getpid());
 
 	FILE* file;
 	file = fopen(workerName, "a");
@@ -229,39 +255,38 @@ void writeLog(int time, char* query, char* str, char* winnerPath, char** paths, 
 		exit(5);
 	}
 	else {
-		fprintf(file,"%d",time);
-		fprintf(file,"%s", " : ");
+		getCurrentTime(file);
+		fprintf(file,"%s", ":");
 		fprintf(file,"%s",query);
 		if (!strcmp(query,"search")){
-			fprintf(file,"%s", " : ");
+			fprintf(file,"%s", " ");
 			fprintf(file,"%s",str);
 			if (paths != NULL){
-				fprintf(file,"%s", " : ");
+				fprintf(file,"%s", ":");
 				//We use num variable to know the size of the array in this case
 				for (int i=0; i < num-1; i++){
 					fprintf(file,"%s",paths[i]);
-					fprintf(file,"%s"," : ");
+					fprintf(file,"%s",":");
 				}
 				fprintf(file,"%s",paths[num]);
 			}
 		}
 		else if (!strcmp(query,"maxcount") || !strcmp(query,"mincount")){
-			fprintf(file,"%s", " : ");
+			fprintf(file,"%s", ":");
 			fprintf(file,"%s", winnerPath);
 		}
 		else if (!strcmp(query,"wc")){
-			fprintf(file,"%s", " : ");
+			fprintf(file,"%s", " ");
 			fprintf(file,"%d",bytes);
-			fprintf(file,"%s", " : ");
+			fprintf(file,"%s", " ");
 			//We use num variable to send the number of lines in this case
 			fprintf(file,"%d",num);
-			fprintf(file,"%s", " : ");
+			fprintf(file,"%s", " ");
 			fprintf(file,"%d",numWords);
 		}
 		fprintf(file,"%s", "\n");
 	}
 	fclose (file);
-	delete[] workerName;
 }
 
 void freeAll(char ** mydirFiles, char** paths, int pathsNum, int filesNum, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, Trie* trie){

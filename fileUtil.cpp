@@ -19,7 +19,7 @@ void commandError(){
 }
 
 //Read input File
-char** readFile(char* myFile, int &lines){
+char** readFile(char* myFile, int& lines, int& fileChars){
 	FILE * file;
 	lines = 0;
 
@@ -35,9 +35,10 @@ char** readFile(char* myFile, int &lines){
 		//Lines
 		char * mystring = NULL;
 		size_t n = 0;
-			cout << "readRegSAXNE " << lines  ;
+			cout << "readRegSAXNE " << lines;
 		for (int i=0; i<lines;i++){
 			ssize_t size = getline(&mystring, &n, file);
+			fileChars+=(int)size;
 			if(mystring[size-1]=='\n') mystring[size-1]='\0';
 			char *token = strtok(mystring," \t");
 			//For first character of first line we check without using atoi

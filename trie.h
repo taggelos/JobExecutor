@@ -27,7 +27,7 @@ class Trie {
 	int maxLen;
 public:
 	Trie();
-	void add(const char* word, const int& lineNum, const char* pathName);
+	void add(const char* word, const int& lineNum, char* pathName);
 	PostingList* search(const char* word);
 	void findAll();
 	void traverse(Node* n,char* word,int i);

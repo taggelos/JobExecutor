@@ -3,32 +3,37 @@
 #include "postingList.h"
 using namespace std;
 
-PostingList::Node::Node(int l){
+PostingList::Node::Node(int l, char* p){
 	//Initialisation
 	next = NULL;
 	line= l;
 	count= 1;
+	pathList = new PathList(p);
 }
 
-PostingList::PostingList(int line, const char* p){
+PostingList::Node::~Node(){
+	delete pathList;
+}
+
+PostingList::PostingList(int line, char* p){
 	//Initialise our first Node, head
-	head = new Node(line);
+	head = new Node(line, p);
 	numNodes = 1;
 	totalTimes = 1;
-	pathName = p;
 }
 
-void PostingList::add(int line){
+void PostingList::add(int line, char* pathName){
 	Node* temp = head;
+	temp->pathList->add(pathName);
 	while(1){
 		//If there is same line again, add that we found the word
-		if (temp->line == line) {
+		if (temp->line == line){
 			temp->count++;
 			break;
 		}
 		//If we meet the word in the line for the first time
 		if (temp->next==NULL){
-			Node* n = new Node(line);
+			Node* n = new Node(line, pathName);
 			temp->next = n;
 			numNodes++;
 			break;

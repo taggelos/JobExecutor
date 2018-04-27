@@ -24,7 +24,7 @@ using namespace std;
 
 void paramError(char * programName ,const char * reason);
 void commandError();
-char** readFile(char* myFile, int &lines);
+char** readFile(char* myFile, int &lines, int& fileChars);
 char** readPathFile(char* myFile, int &lines);
 void inputCheck(int argc, char* argv[], char*& inputFile, int& topK);
 void createLog();

@@ -16,7 +16,7 @@ run:
 	./$(OUT) -d $(DATA)
 
 val: 
-	valgrind -v --leak-check=full --show-leak-kinds=all ./$(OUT) -d $(DATA)
+	valgrind -v --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(OUT) -d $(DATA) 
 
 clean:
 	rm -f $(OBJS) $(OUT) .j2w* .w2j* log/Worker_*

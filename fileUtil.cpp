@@ -35,7 +35,6 @@ char** readFile(char* myFile, int& lines, int& fileChars){
 		//Lines
 		char * mystring = NULL;
 		size_t n = 0;
-			cout << "readRegSAXNE " << lines;
 		for (int i=0; i<lines;i++){
 			ssize_t size = getline(&mystring, &n, file);
 			fileChars+=(int)size;
@@ -48,7 +47,7 @@ char** readFile(char* myFile, int& lines, int& fileChars){
 			}
 			documents[i] = new char[size+1-strlen(token)];
 			strcpy(documents[i],mystring+strlen(token)+1);
-			cout << "  " << documents[i] << "  "<< endl;
+			//cout << "  " << documents[i] << "  "<< endl;
 		}
 		if(mystring!=NULL) free(mystring);
 		fclose (file);
@@ -72,7 +71,6 @@ char** readPathFile(char* myFile, int &lines){
 		//Lines
 		char * mystring = NULL;
 		size_t n = 0;
-			cout << "readPATHSAXNE " << lines  << "  "<< endl;
 		for (int i=0; i<lines;i++){
 			ssize_t size = getline(&mystring, &n, file);
 			if(mystring[size-1]=='\n') mystring[size-1]='\0';

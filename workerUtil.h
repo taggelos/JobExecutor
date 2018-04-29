@@ -7,7 +7,7 @@
 #ifndef WORKERUTIL_H
 #define WORKERUTIL_H
 
-void worker(char** w2j, char** j2w, int workersNum);
+void worker(char* w2j, char* j2w);
 char** readDirs(char** paths, int pathsNum, int& documentsNum);
 void wSearch(int fd, int fdSend, Trie* trie, char*** documentsFiles, char** mydirFiles, int filesNum);
 void wMinMaxcount(int fd, int fdSend, Trie* trie, const char* cmd);

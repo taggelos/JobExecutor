@@ -1,11 +1,43 @@
 //Function Definitions
 #include "jobExecutorUtil.h"
 
-void jobExecutor(char** w2j, char** j2w, char* inputFile, char** paths, int pathsNum, int workersNum){
+bool finished = false;
+Documents* documents;
+pid_t* pids;
+char** w2j;
+char** j2w;
+int* fdsJ2w;
+int* fdsW2j;
+
+void worker(char* w2j, char* j2w);
+
+void signalHandler(int signum){
+	cout << "Inside signalHandler!"<<endl;
+	pid_t pid = wait(NULL);
+	if(!finished) {
+		int i = 0;
+		while (pids[i] != pid) i++;
+		switch(pids[i] = fork()) {
+			case -1: perror("fork call"); exit(2);
+			//child processes
+			case 0:
+					cout << "Creating process of worker " <<i<<endl;
+					worker(w2j[i], j2w[i]);
+			default:
+					cout << "Sharing directories with worker " <<i<<endl;
+					writeInt(fdsJ2w[i], documents[i].size);
+					for (int j=0; j<documents[i].size; j++) writeString(fdsJ2w[i],documents[i].paths[j]);
+		}
+	}
+	else cout << "Finished properly with signum " << signum <<endl;
+}
+
+void jobExecutor(char* inputFile, char** paths, int pathsNum, int workersNum){
 	cout << "PARENT-- " <<endl;
-	//parent process
-	int * fdsJ2w = new int[workersNum];
-	int * fdsW2j = new int[workersNum];
+	//parent process	
+	documents = loadBalancer(paths, pathsNum, workersNum);
+	fdsJ2w = new int[workersNum];
+	fdsW2j = new int[workersNum];
 	for (int i=0; i<workersNum; i++){
 		//Open named pipe from Job to worker
 		if ((fdsJ2w[i] = open(j2w[i], O_WRONLY)) < 0){
@@ -17,9 +49,18 @@ void jobExecutor(char** w2j, char** j2w, char* inputFile, char** paths, int path
 			perror("fifo open error"); 
 			exit(4);
 		}
+		writeInt(fdsJ2w[i], documents[i].size);
+		for (int j=0; j<documents[i].size; j++) writeString(fdsJ2w[i],documents[i].paths[j]);
 	}
-	loadBalancer(paths, pathsNum, workersNum, fdsJ2w);
 	cout << "Your file: '"<< inputFile <<"' was processed!"<< endl << "Type your commands.." <<endl;
+
+	//Signal Handling
+	struct sigaction act;
+	act.sa_handler = signalHandler;
+	sigemptyset (&act.sa_mask);
+	act.sa_flags = 0;
+	sigaction(SIGCHLD, &act, NULL);
+
 	//Read Command
 	char *cmd;
 	char *mystring = NULL;
@@ -32,6 +73,7 @@ void jobExecutor(char** w2j, char** j2w, char* inputFile, char** paths, int path
 		else cmd = strtok(mystring, " ");
 		// /exit
 		if (!strcmp(cmd,"/exit")){
+			finished = true;
 			sendCmd('e', fdsJ2w, workersNum);
 			break;
 		}
@@ -50,10 +92,13 @@ void jobExecutor(char** w2j, char** j2w, char* inputFile, char** paths, int path
 	if(mystring!=NULL) free(mystring);
 	delete[] fdsJ2w;
 	delete[] fdsW2j;
+	for(int i=0; i<workersNum; i++)	delete[] documents[i].paths;
+	delete[] documents;
 }
 
 //Divide paths to workers
-void loadBalancer(char** paths, int pathsNum, int workers, int* fd){
+Documents* loadBalancer(char** paths, int pathsNum, int workers){
+	Documents* documents = new Documents[workers]; 
 	//Calculate the size of parts to find the division points
 	int equalParts = pathsNum / workers;
 	//Surplus to be hold to know sizes
@@ -63,10 +108,15 @@ void loadBalancer(char** paths, int pathsNum, int workers, int* fd){
 	for (int i=0; i<workers; i++){
 		int size = equalParts;
 		if (i < surplus) size++;
-		writeInt(fd[i], size);
+		documents[i].paths = new char*[size];
+		documents[i].size = size;
+		
 		cout << "worker " << i << " ->" << paths[k] <<endl;
-		for (int j=0; j<size; j++) writeString(fd[i],paths[k++]);
+		for (int j=0; j<size; j++) {
+			documents[i].paths[j] = paths[k++];
+		}
 	}
+	return documents;
 }
 
 void jSearch(int* fd, int* fdReceive, int workers){
@@ -107,7 +157,6 @@ void jSearch(int* fd, int* fdReceive, int workers){
 					free2D(winnerLines,numResults);
 				}
 		}
-		
 		//Receive if it was processed on time
 		char* timeout = readString(fdReceive[i]);
 		if(strcmp(timeout,"TimeOut")) finishedWorkers++;
@@ -129,7 +178,7 @@ void jMinMaxCount(int* fd, int* fdReceive, int workers, const char* cmd){
 	int workerResult;
 	//Initialise with nothing so as to be able to strcmp the first time we take a path from a Worker
 	char* maxWinnerPath = new char[1];
-	strcpy(maxWinnerPath,"");
+	maxWinnerPath[0]='\0';
 	int minMaxTimes=1;
 	for (int i=0; i<workers; i++) {
 		//Send the keyword to be used
@@ -138,7 +187,7 @@ void jMinMaxCount(int* fd, int* fdReceive, int workers, const char* cmd){
 		if(workerResult){
 			winnerPath = readString(fdReceive[i]);
 			readInt(fdReceive[i], times);
-			cout << " hiiii " << winnerPath << times <<endl;
+			//cout << " winnerPath " << winnerPath << times <<endl;
 			//If we search for maximum, we make alphabetical order in case we find 2 with same times found
 			if( (!strcmp(cmd,"maxcount") && ((times > minMaxTimes) || (times == minMaxTimes && strcmp(winnerPath,maxWinnerPath)<0))) 
 			//In case of minimum 

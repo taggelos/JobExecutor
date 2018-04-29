@@ -1,0 +1,7 @@
+0 fox brown lazy noob
+1 fox lazy noob
+2 noob
+3 brown fox
+4 lazylazy
+5 lazy
+6 textB1.txt

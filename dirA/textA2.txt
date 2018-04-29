@@ -1,0 +1,11 @@
+0 AAAfox
+1 AAAlazy foxfox brown 
+2 AAAtexta2 brown less
+3 AAAread   lazy head
+4 AAAsadsad
+5 AAAread   lazy head
+6 AAAsadsad
+7 AAAread   lazy head
+8 AAAsadsad
+9 AAAsadsad
+10 AAAtextA2.txt

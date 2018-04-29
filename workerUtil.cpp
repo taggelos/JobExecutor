@@ -48,9 +48,9 @@ void worker(char** w2j, char** j2w, int workersNum){
 						perror("Problem in reading the number of paths");
 						exit(4);
 					}
-					if (cmd == 's') wSearch(fdsJ2w, fdsW2j, trie, nwordsFiles, documentsFiles, lineNumFiles, mydirFiles, filesNum);
-					else if (cmd == 'i') wMinMaxcount(fdsJ2w, fdsW2j, trie, filesNum, "mincount");
-					else if (cmd == 'a') wMinMaxcount(fdsJ2w, fdsW2j, trie, filesNum, "maxcount");
+					if (cmd == 's') wSearch(fdsJ2w, fdsW2j, trie, documentsFiles, mydirFiles, filesNum);
+					else if (cmd == 'i') wMinMaxcount(fdsJ2w, fdsW2j, trie, "mincount");
+					else if (cmd == 'a') wMinMaxcount(fdsJ2w, fdsW2j, trie, "maxcount");
 					else if (cmd == 'w') wWc(fdsW2j, filesNum, nwordsFiles, lineNumFiles, totalChars);
 					///else continue;
 					///writeLog();
@@ -63,7 +63,7 @@ void worker(char** w2j, char** j2w, int workersNum){
 	}
 }
 
-void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, char** mydirFiles, int filesNum){
+void wSearch(int fd, int fdSend, Trie* trie, char*** documentsFiles, char** mydirFiles, int filesNum){
 	cout << "Start wsearch command" << " pid->" <<getpid() << endl;
 	//Start counting time
 	clock_t start;
@@ -125,8 +125,8 @@ void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** document
 	free2D(words,numWords);
 }
 
-void wMinMaxcount(int fd, int fdSend, Trie* trie, int filesNum, const char* cmd){
-	cout << "Start wminmaxcount command " <<endl;//<< filesNum << " pid->" <<getpid() << endl;
+void wMinMaxcount(int fd, int fdSend, Trie* trie, const char* cmd){
+	cout << "Start wminmaxcount command " <<endl;//<< < " pid->" <<getpid() << endl;
 	char* keyword = readString(fd);
 	char* pathName;
 	int times = 0;
@@ -163,17 +163,6 @@ void wWc(int fd, int filesNum, int** nwordsFiles, int* lineNumFiles, int totalCh
 	writeInt(fd,lineNums);
 	writeInt(fd,nwords);
 	writeLog("wc", NULL, NULL, NULL, lineNums, totalChars, nwords);
-}
-
-//Read commands
-char** readCommands(int fd){
-	cout << "Commands "<<endl;
-	/*char cmd;
-	if (read(fd, &cmd, sizeof(char)) < 0) {
-		perror("Problem in reading the number of paths");
-		exit(4);
-	}*/
-	return NULL;
 }
 
 //Read Directories

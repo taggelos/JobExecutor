@@ -49,7 +49,7 @@ function read_files(){
 					if [[ ! " ${words_found[@]} " =~ " ${cmd[1]} " ]]; then
 						words_found+=(${cmd[1]})
 						count_searches=$((count_searches+1))
-					fi					
+					fi
 				fi
 
 				#Exclude the timestamp and the query from the parts

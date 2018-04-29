@@ -31,7 +31,7 @@ public:
 	int getTotalTimes();
 	int* getWinnerLines();
 	int countNodes();
-	int getMaxTimes();
+	int getTimes();
 	void score(double* bm25, bool* flags, double avgdl, int N, int* nwords);
 	//term frequency function
 	int tf(int line);

@@ -24,7 +24,7 @@ public:
 	void add(char* path, const int& lineNum);
 	int countPaths();
 	PostingList* getPlist(char* path);
-	char* getMaxPath(int& maxTimes);
+	char* getMinMaxPath(int& times, const char* cmd);
 	char** returnAsArray();
 	~PathList();
 };

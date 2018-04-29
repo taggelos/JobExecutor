@@ -57,25 +57,24 @@ PostingList* PathList::getPlist(char* pathName){
 	return NULL;
 }
 
-char* PathList::getMaxPath(int& maxTimes){
+char* PathList::getMinMaxPath(int& times, const char* cmd){
 	Node* temp = head;
-	maxTimes=temp->plist->getMaxTimes();
-	char* maxPath = new char[strlen(temp->path)+1];
-	strcpy(maxPath,temp->path);
+	times=temp->plist->getTimes();
+	char* minMaxPath = new char[strlen(temp->path)+1];
+	strcpy(minMaxPath,temp->path);
 	temp = temp->next;
 	int curr=0;
 	while(temp!= NULL){
-		curr = temp->plist->getMaxTimes();
-		if(curr > maxTimes) {
-			maxTimes = curr;
-			delete[] maxPath;
-			maxPath = new char[strlen(temp->path)+1];
-			strcpy(maxPath,temp->path);
+		curr = temp->plist->getTimes();
+		if((curr > times && !strcmp(cmd,"maxcount")) || (curr < times && !strcmp(cmd,"mincount"))){
+			times = curr;
+			delete[] minMaxPath;
+			minMaxPath = new char[strlen(temp->path)+1];
+			strcpy(minMaxPath,temp->path);
 		}
-		// else if (curr == maxTimes) //alpabetically
 		temp = temp->next;
 	}
-	return maxPath;
+	return minMaxPath;
 }
 
 char** PathList::returnAsArray(){

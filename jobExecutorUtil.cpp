@@ -38,9 +38,9 @@ void jobExecutor(char** w2j, char** j2w, char* inputFile, char** paths, int path
 		// /search
 		else if (!strcmp(cmd,"/search")) jSearch(fdsJ2w, fdsW2j, workersNum); //Then write to workers
 		// /maxcount
-		else if (!strcmp(cmd,"/maxcount")) jMaxcount(fdsJ2w, fdsW2j, workersNum);
+		else if (!strcmp(cmd,"/maxcount")) jMinMaxCount(fdsJ2w, fdsW2j, workersNum,"maxcount");
 		// /mincount
-		else if (!strcmp(cmd,"/mincount")) jMincount();
+		else if (!strcmp(cmd,"/mincount")) jMinMaxCount(fdsJ2w, fdsW2j, workersNum,"mincount");
 		// /wc
 		else if (!strcmp(cmd,"/wc")) jWc(fdsW2j, fdsJ2w, workersNum);
 		//Wrong Command
@@ -117,27 +117,34 @@ void jSearch(int* fd, int* fdReceive, int workers){
 	free2D(words,numWords);
 }
 
-void jMaxcount(int* fd, int* fdReceive, int workers){
+void jMinMaxCount(int* fd, int* fdReceive, int workers, const char* cmd){
 	char * keyword = mcountInputCheck();
 	if (keyword==NULL) return;
 	//Use the 'a' letter to designate our maxcount command
 	sendCmd('a', fd, workers);
 	char* winnerPath;
+	bool found=false;
 	int times;
-	//Acts like boolean
-	int found;
-	char* maxWinnerPath = new char[0];
-	int maxTimes=0;
+	//Acts like boolean to ignore reading results from workers
+	int workerResult;
+	//Initialise with nothing so as to be able to strcmp the first time we take a path from a Worker
+	char* maxWinnerPath = new char[1];
+	strcpy(maxWinnerPath,"");
+	int minMaxTimes=1;
 	for (int i=0; i<workers; i++) {
 		//Send the keyword to be used
 		writeString(fd[i], keyword);
-		readInt(fdReceive[i], found);
-		if(found){
+		readInt(fdReceive[i], workerResult);
+		if(workerResult){
 			winnerPath = readString(fdReceive[i]);
 			readInt(fdReceive[i], times);
 			cout << " hiiii " << winnerPath << times <<endl;
-			if((times > maxTimes) || (times == maxTimes && strcmp(winnerPath,maxWinnerPath)<0)){
-				maxTimes = times;
+			//If we search for maximum, we make alphabetical order in case we find 2 with same times found
+			if( (!strcmp(cmd,"maxcount") && ((times > minMaxTimes) || (times == minMaxTimes && strcmp(winnerPath,maxWinnerPath)<0))) 
+			//In case of minimum 
+				|| (!strcmp(cmd,"mincount") && ((times <= minMaxTimes))) ){
+				found = true;
+				minMaxTimes = times;
 				delete[] maxWinnerPath;
 				maxWinnerPath = new char[strlen(winnerPath)+1];
 				strcpy(maxWinnerPath, winnerPath);
@@ -145,15 +152,10 @@ void jMaxcount(int* fd, int* fdReceive, int workers){
 			delete[] winnerPath;
 		}
 	}
-	//if winnerPath = "" ignore it
-	cout << "jobExecutor Winner Path -> "<<  maxWinnerPath << ", found " << maxTimes <<" times!"<<endl;
+	if (found) cout << "JobExecutor message: Winner Path -> "<<  maxWinnerPath << ", found " << minMaxTimes <<" times!"<<endl;
+	else cout << "JobExecutor message: NO Winner Path"<<endl;
 	delete[] keyword;
 	delete[] maxWinnerPath;
-}
-
-void jMincount(){
-	char * param = mcountInputCheck();
-	delete[] param;
 }
 
 void jWc(int* fd, int* fdSend, int workers){

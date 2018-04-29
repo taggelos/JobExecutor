@@ -61,11 +61,11 @@ int PostingList::countNodes(){
 	return numNodes;
 }
 
-int PostingList::getMaxTimes(){
+int PostingList::getTimes(){
 	Node* temp = head;
 	int maxTimes=0;
 	while(temp != NULL){
-		if (temp->count > maxTimes) maxTimes = temp->count;
+		maxTimes += temp->count;
 		temp = temp->next;
 	}
 	return maxTimes;

@@ -49,8 +49,8 @@ void worker(char** w2j, char** j2w, int workersNum){
 						exit(4);
 					}
 					if (cmd == 's') wSearch(fdsJ2w, fdsW2j, trie, nwordsFiles, documentsFiles, lineNumFiles, mydirFiles, filesNum);
-					//else if (cmd == 'i') wMincount();
-					else if (cmd == 'a') wMaxcount(fdsJ2w, fdsW2j, trie, filesNum);
+					else if (cmd == 'i') wMinMaxcount(fdsJ2w, fdsW2j, trie, filesNum, "mincount");
+					else if (cmd == 'a') wMinMaxcount(fdsJ2w, fdsW2j, trie, filesNum, "maxcount");
 					else if (cmd == 'w') wWc(fdsW2j, filesNum, nwordsFiles, lineNumFiles, totalChars);
 					///else continue;
 					///writeLog();
@@ -125,25 +125,25 @@ void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** document
 	free2D(words,numWords);
 }
 
-void wMincount(){
-	return;
-}
-
-void wMaxcount(int fd, int fdSend, Trie* trie, int filesNum){
-	cout << "Start wmaxcount command " <<endl;//<< filesNum << " pid->" <<getpid() << endl;
+void wMinMaxcount(int fd, int fdSend, Trie* trie, int filesNum, const char* cmd){
+	cout << "Start wminmaxcount command " <<endl;//<< filesNum << " pid->" <<getpid() << endl;
 	char* keyword = readString(fd);
 	char* pathName;
 	int times = 0;
 	PathList* pathList = trie->search(keyword);
 	if (pathList!=NULL){
 		writeInt(fdSend,1);		
-		pathName = pathList->getMaxPath(times);
+		pathName = pathList->getMinMaxPath(times,cmd);
 		writeString(fdSend, pathName);
 		writeInt(fdSend, times);
 		// cout << "maxFilePathName " <<maxFilePathName << " maxFileTimes "  <<maxFileTimes <<endl;
-		writeLog("maxcount", keyword, pathName, NULL, times, 0, 0); //if (strcmp(pathName,"")) 
+		writeLog(cmd, keyword, pathName, NULL, times, 0, 0); //if (strcmp(pathName,"")) 
 		delete[] pathName;
-	} else writeInt(fdSend,0);
+	} 
+	else {
+		writeInt(fdSend,0);
+		writeLog(cmd, keyword, pathName, NULL, 0, 0, 0);
+	}
 	delete[] keyword;
 }
 
@@ -271,7 +271,7 @@ void writeLog(const char* query, char* str, char* winnerPath, char** paths, int 
 			}
 		}
 		else if (!strcmp(query,"maxcount") || !strcmp(query,"mincount")){
-			fprintf(file,":%s", winnerPath);
+			if (num!=0)	fprintf(file,":%s", winnerPath);
 			//Number of times found
 			fprintf(file," %d", num);
 		}

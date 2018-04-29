@@ -24,7 +24,7 @@ void insertTrie(Trie* trie, char* pathName, char** documents, const int& lineNum
 }
 
 //The new search for this exercise, topK by default 10
-char** trieSearch(Trie* trie, char** words, const int& numWords, const int& N, char** documents, int* nwords, int*& linesFound, int& numResults){
+char** trieSearch(Trie* trie, char** words, char* pathName, const int& numWords, const int& N, char** documents, int* nwords, int*& linesFound, int& numResults){
 	//Scores
 	double bm25 [N]={};
 	//To find if a score cell was 0 or became 0
@@ -33,12 +33,13 @@ char** trieSearch(Trie* trie, char** words, const int& numWords, const int& N, c
 	double avgdl = (double) nwords[N] / N;
 	//Flag to see if we found any word
 	bool flag = true;
-	for(int i=0; i<numWords; i++){
-		PostingList* plist = trie->search(words[i]);
+	//Without the -d flag and its value, iterate through the words
+	for(int i=2; i<numWords; i++){
+		PathList* plist = trie->search(words[i]);
 		if (plist!=NULL){
 			flag=false;
 			//Calculate score for bm25
-			plist->score(bm25, bm25flags, avgdl, N, nwords);
+			plist->getPlist(pathName)->score(bm25, bm25flags, avgdl, N, nwords);
 		}
 	}
 	if(flag){
@@ -70,6 +71,7 @@ char** trieSearch(Trie* trie, char** words, const int& numWords, const int& N, c
 	return winnerLines;
 }
 
+/*
 //Find how many times a word appears
 char* trieTimes(char* keyword, int& count, Trie* trie){
 	//Counter to see how many times we found the word
@@ -81,7 +83,7 @@ char* trieTimes(char* keyword, int& count, Trie* trie){
 		////strcpy(pathName,plist->getPathName());
 	}
 	return pathName;
-}
+}*/
 
 void printResults(char** documents, char** words, int numWords, int* linesFound, int numResults){
 	//Insert to heap

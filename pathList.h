@@ -1,6 +1,7 @@
 // Header --> Functions Declarations
 #include <iostream>
 #include <cstring> //strcpy
+#include "postingList.h"
 
 using namespace std;
 
@@ -10,17 +11,20 @@ using namespace std;
 class PathList {
 	struct Node {
 		char* path;
+		PostingList* plist;
 		Node* next;
-		Node(char* path);
+		Node(char* path, const int& lineNum);
 		~Node();
 	};
 	Node* head;
 	//Number of Nodes
 	int numNodes;
 public:
-	PathList(char* path);
-	void add(char* path);
+	PathList(char* p, const int& lineNum);
+	void add(char* path, const int& lineNum);
 	int countPaths();
+	PostingList* getPlist(char* path);
+	char* getMaxPath(int& maxTimes);
 	char** returnAsArray();
 	~PathList();
 };

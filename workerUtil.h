@@ -11,7 +11,7 @@ void worker(char** w2j, char** j2w, int workersNum);
 char** readCommands(int fd);
 char** readDirs(char** paths, int pathsNum, int& documentsNum);
 void wSearch(int fd, int fdSend, Trie* trie, int** nwordsFiles, char*** documentsFiles, int* lineNumFiles, char** mydirFiles, int filesNum);
-void wMaxcount(int fd, int fdSend, Trie* trie);
+void wMaxcount(int fd, int fdSend, Trie* trie, int filesNum);
 void wMincount();
 void wWc(int fd, int filesNum, int** nwordsFiles, int* lineNumFiles, int totalChars);
 void getCurrentTime(FILE* file);

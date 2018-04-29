@@ -24,7 +24,7 @@ function read_files(){
 
 	#Check if there is log folder
 	if (( $? != 0 )); then
-		echo "${red}Log folder Not Found!"
+		echo "${red}Log folder Not Found!${reset}"
 		exit 1
 	else
 		count_searches=0

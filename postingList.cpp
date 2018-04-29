@@ -3,28 +3,25 @@
 #include "postingList.h"
 using namespace std;
 
-PostingList::Node::Node(int l, char* p){
+PostingList::Node::Node(int l){
 	//Initialisation
 	next = NULL;
 	line= l;
 	count= 1;
-	pathList = new PathList(p);
 }
 
 PostingList::Node::~Node(){
-	delete pathList;
 }
 
-PostingList::PostingList(int line, char* p){
+PostingList::PostingList(int line){
 	//Initialise our first Node, head
-	head = new Node(line, p);
+	head = new Node(line);
 	numNodes = 1;
 	totalTimes = 1;
 }
 
-void PostingList::add(int line, char* pathName){
+void PostingList::add(int line){
 	Node* temp = head;
-	temp->pathList->add(pathName);
 	while(1){
 		//If there is same line again, add that we found the word
 		if (temp->line == line){
@@ -33,7 +30,7 @@ void PostingList::add(int line, char* pathName){
 		}
 		//If we meet the word in the line for the first time
 		if (temp->next==NULL){
-			Node* n = new Node(line, pathName);
+			Node* n = new Node(line);
 			temp->next = n;
 			numNodes++;
 			break;
@@ -48,8 +45,30 @@ int PostingList::getTotalTimes(){
 	return totalTimes;
 }
 
+int* PostingList::getWinnerLines(){
+	Node* temp = head;
+	int* winnerLines = new int[numNodes];
+	int i=0;
+	while(temp!=NULL){
+		winnerLines[i++] = temp->line;
+		//Keep searching in our List
+		temp = temp->next;
+	}
+	return winnerLines;
+}
+
 int PostingList::countNodes(){
 	return numNodes;
+}
+
+int PostingList::getMaxTimes(){
+	Node* temp = head;
+	int maxTimes=0;
+	while(temp != NULL){
+		if (temp->count > maxTimes) maxTimes = temp->count;
+		temp = temp->next;
+	}
+	return maxTimes;
 }
 
 void PostingList::score(double* bm25, bool* flags, double avgdl, int N, int* nwords){
@@ -57,7 +76,7 @@ void PostingList::score(double* bm25, bool* flags, double avgdl, int N, int* nwo
 	//Idf
 	double curIdf;
 	Node* temp = head;
-	while(temp!= NULL){
+	while(temp != NULL){
 		curIdf= idf(N,numNodes);
 		//Number of words in a document -> |D|
 		D = nwords[temp->line];

@@ -1,6 +1,6 @@
 // Header --> Functions Declarations
 #include <iostream>
-#include "postingList.h"
+#include "pathList.h"
 
 using namespace std;
 
@@ -14,8 +14,8 @@ class Trie {
 		char letter;
 		Node* down;
 		Node* right;
-		PostingList* plist;
-		Node(char letter, PostingList* plist = NULL);
+		PathList* plist;
+		Node(char letter, PathList* plist = NULL);
 		~Node();
 	};
 	Node* head;
@@ -28,7 +28,7 @@ class Trie {
 public:
 	Trie();
 	void add(const char* word, const int& lineNum, char* pathName);
-	PostingList* search(const char* word);
+	PathList* search(const char* word);
 	void findAll();
 	void traverse(Node* n,char* word,int i);
 	void traverseDel(Node* n);

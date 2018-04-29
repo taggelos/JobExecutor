@@ -87,27 +87,29 @@ void jSearch(int* fd, int* fdReceive, int workers){
 		//Number of files
 		int filesNum;
 		int numResults;
-		//Holds winner path or "NoWordsFound"
+		//Holds winner path
 		char* winnerPath;
 		char** winnerLines;
 		int* linesFound;
-		readInt(fdReceive[i],filesNum);
-		for (int j=0; j<filesNum; j++){
-			winnerPath = readString(fdReceive[i]);
-			if(!strcmp(winnerPath,"NoWordsFound")){
-				//cout << "JOBEXE NoWordsFound" << endl;
-				delete[] winnerPath;
-				continue;
-			}
-			winnerLines = readArray(fdReceive[i],numResults);
-			linesFound = readIntArray(fdReceive[i],numResults);
-			//cout << "WINNERPATH " << winnerPath << " with numResults " << numResults << " winnerline1 " << winnerLines[0]<< endl;
-			delete[] winnerPath;
-			delete[] linesFound;
-			free2D(winnerLines,numResults);
+		for (int j=2; j<numWords; j++){
+			readInt(fdReceive[i],filesNum);
+			if(filesNum>0)
+				for (int k=0; k<filesNum; k++){
+					//Receive path of the file
+					winnerPath = readString(fdReceive[i]);
+					//Receive winner lines
+					winnerLines = readArray(fdReceive[i],numResults);
+					//Receive numbers of winner lines
+					linesFound = readIntArray(fdReceive[i],numResults);
+					//cout << "WINNERPATH " << winnerPath << " with numResults " << numResults << " winnerline1 " << winnerLines[0]<< endl;
+					delete[] winnerPath;
+					delete[] linesFound;
+					free2D(winnerLines,numResults);
+				}
 		}
+		
+		//Receive if it was processed on time
 		char* timeout = readString(fdReceive[i]);
-		//cout << "axxxxx " << timeout <<endl;
 		if(strcmp(timeout,"TimeOut")) finishedWorkers++;
 		delete[] timeout;
 	}
@@ -118,17 +120,35 @@ void jSearch(int* fd, int* fdReceive, int workers){
 void jMaxcount(int* fd, int* fdReceive, int workers){
 	char * keyword = mcountInputCheck();
 	if (keyword==NULL) return;
-	//Use the 'a' letter to designate our search command
+	//Use the 'a' letter to designate our maxcount command
 	sendCmd('a', fd, workers);
 	char* winnerPath;
+	int times;
+	//Acts like boolean
+	int found;
+	char* maxWinnerPath = new char[0];
+	int maxTimes=0;
 	for (int i=0; i<workers; i++) {
 		//Send the keyword to be used
 		writeString(fd[i], keyword);
-		winnerPath = readString(fdReceive[i]);
-		delete[] winnerPath;
+		readInt(fdReceive[i], found);
+		if(found){
+			winnerPath = readString(fdReceive[i]);
+			readInt(fdReceive[i], times);
+			cout << " hiiii " << winnerPath << times <<endl;
+			if((times > maxTimes) || (times == maxTimes && strcmp(winnerPath,maxWinnerPath)<0)){
+				maxTimes = times;
+				delete[] maxWinnerPath;
+				maxWinnerPath = new char[strlen(winnerPath)+1];
+				strcpy(maxWinnerPath, winnerPath);
+			}
+			delete[] winnerPath;
+		}
 	}
 	//if winnerPath = "" ignore it
+	cout << "jobExecutor Winner Path -> "<<  maxWinnerPath << ", found " << maxTimes <<" times!"<<endl;
 	delete[] keyword;
+	delete[] maxWinnerPath;
 }
 
 void jMincount(){

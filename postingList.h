@@ -1,6 +1,5 @@
 // Header --> Functions Declarations
 #include <iostream>
-#include "pathList.h"
 #include <cmath> //log //floor
 
 using namespace std;
@@ -14,10 +13,8 @@ class PostingList {
 		int line;
 		//Times the word was found in a sentence
 		int count;
-		//Path name List
-		PathList* pathList; 
 		Node* next;
-		Node(int line, char* pathName);
+		Node(int line);
 		~Node();
 	};
 	Node* head;
@@ -28,11 +25,13 @@ class PostingList {
 	double idf(const int& n, const int& nqi);
 	double fscore(const double& idf, const int& tf, const double& avgdl, const int& D, const double& k1 = 1.2, const double& b = 0.75);
 public:
-	PostingList(int line, char* pathName);
-	void add(int line, char* pathName);
+	PostingList(int line);
+	void add(int line);
 	//Number of times a word appears in the file, if needed in future problem
 	int getTotalTimes();
+	int* getWinnerLines();
 	int countNodes();
+	int getMaxTimes();
 	void score(double* bm25, bool* flags, double avgdl, int N, int* nwords);
 	//term frequency function
 	int tf(int line);

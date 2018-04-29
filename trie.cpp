@@ -9,7 +9,7 @@
 
 using namespace std;
 
-Trie::Node::Node(char l, PostingList* p){
+Trie::Node::Node(char l, PathList* p){
 	//Initialisation
 	letter = l;
 	down = NULL;
@@ -47,7 +47,7 @@ void Trie::add(const char* word, const int& lineNum, char* pathName){
 				temp = temp->right->down;
 			}
 			//Last letter of word marked with Posting List
-			else temp->right->plist = new PostingList(lineNum, pathName);
+			else temp->right->plist = new PathList(pathName, lineNum);
 			//Count the new Node we created
 			numNodes++;
 		}
@@ -63,10 +63,10 @@ void Trie::add(const char* word, const int& lineNum, char* pathName){
 			}
 			else{
 				//Last letter of word
-				//Mark Leaf with PostingList if it does not exist
-				if(temp->plist == NULL) temp -> plist = new PostingList(lineNum, pathName);
+				//Mark Leaf with PathList if it does not exist
+				if(temp->plist == NULL) temp -> plist = new PathList(pathName, lineNum);
 				//Leaf node means we met an old word
-				else temp->plist->add(lineNum, pathName);
+				else temp->plist->add(pathName, lineNum);
 			}
 		}
 	}
@@ -74,7 +74,7 @@ void Trie::add(const char* word, const int& lineNum, char* pathName){
 	numWords++;
 }
 
-PostingList* Trie::search(const char* word){
+PathList* Trie::search(const char* word){
 	Node* temp = head;
 	//Checking every letter of the word
 	int len = (int)strlen(word);
@@ -112,7 +112,7 @@ void Trie::traverse(Node* n,char* word,int i){
 		//Finish the word
 		word[i+1] = '\0';
 		//Get total times from its Posting List
-		cout << word << " " << n->plist->countNodes() <<endl;
+		cout << word << " " << n->plist->countPaths() <<endl;
 	}
 	//Traverse all Nodes Down and then Right
 	if (n->down!=NULL) traverse(n->down,word,i+1);

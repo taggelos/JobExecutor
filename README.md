@@ -2,9 +2,9 @@
 Utilize [MiniSearch](https://github.com/taggelos/MiniSearch) repository, using named pipes and signals.
 
 <b><i> Arguments: </i></b> <br/>
-./minisearch -i docfile -k K  <br/>
-./minisearch -i docfile (default value 10 gia to K)  <br/>
-./minisearch -k K -i docfile  <br/>
+./minisearch -d docfile -w number-of-workers  <br/>
+./minisearch -d docfile (default value 10 gia to w)  <br/>
+./minisearch -w number-of-workers -d docfile  <br/>
 
 <b><i> Commands: </i></b> <br/>
 <b>/search q1, q2 .. q10 –d deadline</b> (search 1 to 10 words and receive results inside the deadline period) <br/>

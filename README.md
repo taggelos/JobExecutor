@@ -12,7 +12,14 @@ Utilize [MiniSearch](https://github.com/taggelos/MiniSearch) repository, using n
 <b>/mincount q1</b>                {find the document with the lowest frequency of the q1 (at least one time)} <br/>
 <b>/wc</b>                   (total number of bytes, words and lines from every file) <br/>
 
-In the log folder that is automatically created we hold logs from each individual process (workers)
+<b><i> Script: </i></b> <br/>
+Using stats.sh we can use the below arguments to take these metrics<br/>
+[-t] for total number of keywords searched <br/>
+[-m] for most frequently keyword found <br/>
+[-l] for least frequently keyword found <br/>
+Or use no argument at all to do all of them in the same execution.
+
+In the log folder that is automatically created we hold logs from each individual process (workers).
 
 The architecture can be seen in the image below
 

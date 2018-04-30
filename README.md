@@ -1,5 +1,5 @@
 # JobExecutor
-Utilizing [MiniSearch](https://github.com/taggelos/MiniSearch) repository, using named pipes and signals.
+Utilize [MiniSearch](https://github.com/taggelos/MiniSearch) repository, using named pipes and signals.
 
 <b><i> Arguments: </i></b> <br/>
 ./minisearch -i docfile -k K  <br/>
